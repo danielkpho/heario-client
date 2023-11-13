@@ -15,6 +15,6 @@ const MyPage = () => {
         <p>The person with the most points at the end of the game will then be crowned the winner! Have fun!</p>
     </div>
   );
-};
+  }
 
 export default MyPage;
