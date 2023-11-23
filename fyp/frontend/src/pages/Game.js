@@ -1,4 +1,4 @@
-import React, { Component, useState } from 'react';
+import React, { Component, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import Lobby from './Lobby.js';
 // import { withStyles } from '@mui/material/styles';
@@ -28,7 +28,7 @@ import TableRow from '@mui/material/TableRow';
 import {instrument as soundfontInstrument} from 'soundfont-player';
 import {OCTAVE_NUMBERS, TONES, INTERVALS, SCALES, CHORDS} from '../constants/NOTES.js';
 import '../components/Game.css';
-import AnswerButton from '../components/answerButton.js';
+import TonesAnswerButton from '../components/answerButton.js';
 
 // function TonesAnswerButtons(props) {
 //   const answerButtons = props.answers.map((r) => 
@@ -54,48 +54,7 @@ import AnswerButton from '../components/answerButton.js';
 //   );
 // }
 
-function TonesAnswerButtons(props) {
-  const [clickedButtons, setClickedButtons] = useState([]);
 
-  const handleButtonClick = (note) => {
-    setClickedButtons((prevClickedButtons) => [...prevClickedButtons, note]);
-    props.handleGameAnswer(note);
-  };
-
-  const resetButtonState = () => {
-    setClickedButtons([]);
-  };
-
-  const answerButtons = props.answers.map((r, index) => (
-    <Grid key={index} item xs={"auto"}>
-      <Button
-        color="inherit"
-        className="pitch-trainer-button"
-        style={{ textTransform: 'none' }}
-        disabled={clickedButtons.includes(r)}
-        onClick={() => handleButtonClick(r)}
-      >
-        {r}
-      </Button>
-    </Grid>
-  ));
-
-  return (
-    <Grid
-      container
-      spacing={8}
-      direction="row"
-      alignItems="center"
-    >
-      {answerButtons}
-    </Grid>
-  );
-}
-
-TonesAnswerButtons.propTypes = {
-  answers: PropTypes.array.isRequired,
-  handleGameAnswer: PropTypes.func.isRequired,
-};
 
 // return a table of statistics that user may be interested in
 function PitchTrainerStatistics(props) {
@@ -137,7 +96,6 @@ class PitchTrainer extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      //     ['C',  'C#', 'D', 'D#',  'E',  'F', 'F#', 'G', 'G#',  'A','A#',  'B']
       tones: ['C',  'C#', 'D', 'D#',  'E',  'F', 'F#', 'G', 'G#',  'A','A#',  'B'],
       isLoaded: false,
       isStarted: false,
@@ -147,6 +105,7 @@ class PitchTrainer extends Component {
       scalePlaying: 'Major',
       chordPlaying: 'Major',
       playingNotes: [],
+      resetClickedButtons: false,
       gameStartTime: 0,
       isCorrect: false,
       lastAnswer: -1, // -1: no ans, 0: wrong ans, 1: correct ans
@@ -226,7 +185,7 @@ class PitchTrainer extends Component {
       this.handlePlayNote();
     }
     );
-}
+  }
   
   handleGameStop() {
     const tonePlayingIdx = TONES.indexOf(this.state.tonePlaying);
@@ -449,12 +408,12 @@ class PitchTrainer extends Component {
       statSkips: statSkips,
     }, () => {
       this.handlePlayNote();
+      this.resetButtonState();
     }
     );
   }
 
   handleGameAnswer(answer, answerType) {
-    console.log(answer, answerType)
     const timeNow = performance.now();
 
     if(!this.state.isCorrect) { // do nothing if already answered correctly
@@ -462,7 +421,7 @@ class PitchTrainer extends Component {
       const tonePlayingIdx = TONES.indexOf(this.state.tonePlaying)
       statTries[tonePlayingIdx] += 1;
 
-      if(answer === this.state[answerType]) {
+      if(answer === this.state[answerType]) { // correct answer
         let statTriesTime = this.state.statTriesTime;
         statTriesTime[tonePlayingIdx] += (timeNow - this.state.gameStartTime); // milliseconds
 
@@ -484,6 +443,16 @@ class PitchTrainer extends Component {
       }
     } 
   }
+  
+  resetButtonState = () => {
+    this.setState({ resetClickedButtons: true }, () => {
+      // After a short delay, reset the state
+      setTimeout(() => {
+        this.setState({ resetClickedButtons: false });
+      }, 100);
+      console.log("reset button state");
+    });
+  };
   
   render() {
     const { questionType } = this.state;
@@ -532,9 +501,12 @@ class PitchTrainer extends Component {
 
         {(this.state.isStarted) &&
           <Grid item xs={"auto"}>
-            <TonesAnswerButtons
+            <TonesAnswerButton
               answers={this.state.answers}
-              handleGameAnswer={(answer) => this.handleGameAnswer(answer, this.state.questionType === 'notes' ? 'tonePlaying' : (this.state.questionType === 'intervals' ? 'intervalPlaying' : (this.state.questionType === 'scales' ? 'scalePlaying' : 'chordPlaying')))}/>
+              handleGameAnswer={(answer) => this.handleGameAnswer(answer, this.state.questionType === 'notes' ? 'tonePlaying' : (this.state.questionType === 'intervals' ? 'intervalPlaying' : (this.state.questionType === 'scales' ? 'scalePlaying' : 'chordPlaying')))}
+              resetClickedButtons={this.state.resetClickedButtons}
+              isCorrect={this.state.isCorrect}
+              />
           </Grid>
         }
 
