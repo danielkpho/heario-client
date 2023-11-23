@@ -1,38 +1,6 @@
-// import React, { useEffect } from 'react';
-// import { SplendidGrandPiano } from 'smplr';
-
-// const Game = () => {
-//   useEffect(() => {
-//     const context = new (window.AudioContext || window.webkitAudioContext)();
-//     const piano = new SplendidGrandPiano(context);
-
-//     piano.load.then(() => {
-//       const handleButtonClick = () => {
-//         context.resume(); // enable audio context after a user interaction
-//         piano.start({ note: 60, velocity: 80 });
-//       };
-
-//     document.getElementById("btn").addEventListener("click", handleButtonClick);
-
-//     return () => {
-//       // Cleanup: remove the event listener and close the audio context
-//       document.getElementById("btn").removeEventListener("click", handleButtonClick);
-//       context.close();
-//     };
-//   }, []); 
-// });// The empty dependency array ensures the effect runs once when the component mounts
-
-//   return (
-//     <div>
-//       <button id="btn">Play</button>
-//     </div>
-//   );
-// };
-
-// export default Game;
-
-import React, { Component } from 'react';
+import React, { Component, useState } from 'react';
 import PropTypes from 'prop-types';
+import Lobby from './Lobby.js';
 // import { withStyles } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
@@ -43,10 +11,7 @@ import Grid from '@mui/material/Grid';
 // import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 // import FormHelperText from '@mui/material/FormHelperText';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
 import FormGroup from '@mui/material/FormGroup';
-import FormLabel from '@mui/material/FormLabel';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import Button from '@mui/material/Button';
@@ -61,62 +26,67 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import {instrument as soundfontInstrument} from 'soundfont-player';
-import {OCTAVE_NUMBERS, TONES} from '../constants/NOTES.js';
-import shuffleArray from '../util/shuffleArray';
+import {OCTAVE_NUMBERS, TONES, INTERVALS, SCALES, CHORDS} from '../constants/NOTES.js';
 import '../components/Game.css';
+import AnswerButton from '../components/answerButton.js';
 
-function TonesCheckboxes(props){
-  return(
-    <React.Fragment>
-      <FormLabel component="legend">
-        Choose the notes to test, you can change anytime
-      </FormLabel>
-      <FormGroup row>
-        {TONES.map((t) => 
-          <FormControlLabel
-            key={t}
-            control={
-              <Checkbox
-                checked={props.tones[TONES.indexOf(t)]}
-                onChange={props.handleSelection(t)}
-                value={t}
-              />
-            }
-            label={t}
-          />
-        )}
-      </FormGroup>
-    </React.Fragment>
-  );
-}
+// function TonesAnswerButtons(props) {
+//   const answerButtons = props.answers.map((r) => 
+//     <Grid 
+//       key={r} item xs={"auto"}>
+//       <AnswerButton
+//         onClick={() => props.handleGameAnswer(r)}
+//         label={r} 
+//       />
+//     </Grid>);
 
-TonesCheckboxes.propTypes = {
-  tones: PropTypes.array.isRequired,
-  handleSelection: PropTypes.func.isRequired,
-};
+//   return (
+//     <Grid
+//         container
+//         spacing={8}
+//         direction="row"
+//         alignItems="center"
+//         // justify="center"
+//         // style={{ minHeight: '70vh' }}
+//       >
+//       {answerButtons}
+//     </Grid>
+//   );
+// }
 
 function TonesAnswerButtons(props) {
-  const answerButtons = props.answers.map((r) => 
-    <Grid 
-      key={r} 
-      item xs={"auto"}>
-      <Button 
-        key={r} 
+  const [clickedButtons, setClickedButtons] = useState([]);
+
+  const handleButtonClick = (note) => {
+    setClickedButtons((prevClickedButtons) => [...prevClickedButtons, note]);
+    props.handleGameAnswer(note);
+  };
+
+  const resetButtonState = () => {
+    setClickedButtons([]);
+  };
+
+  const answerButtons = props.answers.map((r, index) => (
+    <Grid key={index} item xs={"auto"}>
+      <Button
         color="inherit"
-        className="pitch-trainer-button" 
-        onClick={() => props.handleGameAnswer(r)}> 
-          {r} 
+        className="pitch-trainer-button"
+        style={{ textTransform: 'none' }}
+        disabled={clickedButtons.includes(r)}
+        onClick={() => handleButtonClick(r)}
+      >
+        {r}
       </Button>
-    </Grid>);
+    </Grid>
+  ));
+
   return (
     <Grid
-        container
-        spacing={8}
-        direction="row"
-        alignItems="center"
-        // justify="center"
-        // style={{ minHeight: '70vh' }}
-      >
+      container
+      spacing={8}
+      direction="row"
+      alignItems="center"
+    >
       {answerButtons}
     </Grid>
   );
@@ -168,12 +138,15 @@ class PitchTrainer extends Component {
     super(props);
     this.state = {
       //     ['C',  'C#', 'D', 'D#',  'E',  'F', 'F#', 'G', 'G#',  'A','A#',  'B']
-      tones: [true,true,true,true,true,true,true,true,true,true,true,true],
+      tones: ['C',  'C#', 'D', 'D#',  'E',  'F', 'F#', 'G', 'G#',  'A','A#',  'B'],
       isLoaded: false,
       isStarted: false,
       // numChoices: 3,
       tonePlaying: 'C',
-      notePlaying: 'C4',
+      intervalPlaying: 'M2',
+      scalePlaying: 'Major',
+      chordPlaying: 'Major',
+      playingNotes: [],
       gameStartTime: 0,
       isCorrect: false,
       lastAnswer: -1, // -1: no ans, 0: wrong ans, 1: correct ans
@@ -187,8 +160,9 @@ class PitchTrainer extends Component {
       statTries: [0,0,0,0,0,0,0,0,0,0,0,0], // how many tries did user made for a tone
       statTriesTime: [0,0,0,0,0,0,0,0,0,0,0,0], // how long in total for user to decide a tone, used to calc average time
       statCorrect: [0,0,0,0,0,0,0,0,0,0,0,0], // how many correct ans in first selection, used to calc the accuracy
+      questionType: 'notes',
     };
-    this.NUM_CHOICES_LIST = Array.apply(null, {length: TONES.length}).map(Number.call, Number).map((r) => <MenuItem key={r} value={r}>{r}</MenuItem>).slice(3);
+    // this.NUM_CHOICES_LIST = Array.apply(null, {length: TONES.length}).map(Number.call, Number).map((r) => <MenuItem key={r} value={r}>{r}</MenuItem>).slice(3);
     this.ac = new AudioContext();
     soundfontInstrument(this.ac, 'acoustic_grand_piano', {
       soundfont: 'MusyngKite'
@@ -197,24 +171,63 @@ class PitchTrainer extends Component {
       this.setState({ isLoaded: true });
     });
   }
-  handleSelection = name => event => {
-    let t = this.state.tones;
-    t[TONES.indexOf(name)] = event.target.checked;
-    this.setState({ tones: t });
-  };
+//   handleSelection = name => event => {
+//     let t = this.state.tones;
+//     t[TONES.indexOf(name)] = event.target.checked;
+//     this.setState({ tones: t });
+//   };
+
+    setQuestions(){
+      const { questionType } = this.state;
+
+        if (questionType === 'notes') {
+        const nextTone = this.getNextTone();
+        this.setState({
+            tonePlaying: nextTone,
+            playingNotes: this.getNextNote(nextTone),
+            answers: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
+        });
+      } else if (questionType === 'intervals') {
+        // Set answers for intervals
+        const interval = this.getRandomInterval();
+        this.setState({
+            intervalPlaying: interval,
+            playingNotes: this.getIntervalNotes(interval),
+            answers: ['m2', 'M2', 'm3', 'M3', 'P4', 'A4', 'P5', 'm6', 'M6', 'm7', 'M7', 'P8'],
+        });
+      } else if (questionType === 'scales') {
+        // Set answers for scales
+        const scale = this.getRandomScale();
+        this.setState({
+            scalePlaying: scale,
+            playingNotes: this.getScaleNotes(scale),
+            answers: ['Major', 'Minor', 'Augmented', 'Diminished'],
+        });
+      } else if (questionType === 'chords') {
+        // Set answers for chords
+        const chord = this.getRandomChord();
+        this.setState({
+            chordPlaying: chord,
+            playingNotes: this.getChordNotes(chord),
+            answers: ['Major', 'Minor', 'Augmented', 'Diminished', 'Major 7th', 'Minor 7th', 'Dominant 7th', 'Diminished 7th'],
+        });
+      }
+    }
+
   handleGameStart() {
-    const nextTone = this.getNextTone();
-    const answers = this.getAnswers(this.state.tones, nextTone);
+    this.setQuestions();
     this.setState({
       gameStartTime: performance.now(),
       isStarted: true,
-      tonePlaying: nextTone,
-      notePlaying: this.getNextNote(nextTone),
       isCorrect: false,
       lastAnswer: -1,
-      answers: answers,
-    }, () => this.handlePlayNote());
-  }
+      // answers: answers,
+    }, () => {
+      this.handlePlayNote();
+    }
+    );
+}
+  
   handleGameStop() {
     const tonePlayingIdx = TONES.indexOf(this.state.tonePlaying);
 
@@ -234,25 +247,122 @@ class PitchTrainer extends Component {
       statSkips: statSkips,
     });
   }
-  // handleNumChoices = event => {
-  //   this.setState({
-  //     [event.target.name]: event.target.value,
-  //    });
-  // };
+
   // randomly chose a note from the tones user chooses
   getNextTone() {
-    let tonesChosen = [];
-    for(let i = 0; i < this.state.tones.length; ++i){ if(this.state.tones[i]) tonesChosen.push(TONES[i]); }
-    return tonesChosen[Math.floor(Math.random()*tonesChosen.length)];
-  }
-  getNextNote(tone) {
-    return tone+OCTAVE_NUMBERS[Math.floor(Math.random()*OCTAVE_NUMBERS.length)].toString();
+    const { tones } = this.state;
+    const nextTone = tones[Math.floor(Math.random()*tones.length)];
+    return nextTone;
   }
   
-  getAnswers(tones, tonePlaying) {
-    let answers = [...TONES];
-    return answers; 
+  getNextNote(tone) { // randomly chose a note from the tones with an octave 
+      const note = tone+OCTAVE_NUMBERS[Math.floor(Math.random()*OCTAVE_NUMBERS.length)].toString();
+      console.log(note);
+    return [note];
   }
+  
+  getRandomInterval() { // return a random interval
+    const intervals = Object.keys(INTERVALS);
+    const randomInterval = intervals[Math.floor(Math.random()*intervals.length)];
+    return randomInterval;
+  };
+
+  getIntervalNotes(interval, startingOctave = 4) { // return a pair of notes based on the selected interval
+    const { tones } = this.state;
+  
+    const intervals = INTERVALS[interval];
+  
+    let currentOctave = startingOctave;
+    let startingIndex = Math.floor(Math.random() * tones.length);
+  
+    const intervalNotes = intervals.map(offset => {
+      const index = (startingIndex + offset) % tones.length;
+      const note = tones[index];
+  
+      // Check if the note is lower than the previous note (crossed into a new octave)
+      if (index < startingIndex) {
+        currentOctave++;
+      }
+  
+      startingIndex = index;
+      return `${note}${currentOctave}`;
+    });
+  
+    return intervalNotes;
+    };
+    
+    getRandomScale() { // return a random scale
+      const scales = Object.keys(SCALES);
+      const randomScale = scales[Math.floor(Math.random()*scales.length)];
+      console.log(randomScale);
+      return randomScale;
+    };
+  
+    getScaleNotes(scale, startingOctave = 4) {
+      const { tones } = this.state;
+    
+      const scaleIntervals = SCALES[scale];
+      
+      let currentOctave = startingOctave;
+      let startingIndex = Math.floor(Math.random() * tones.length);
+      let currentNoteIndex = startingIndex;
+    
+      const scaleNotes = scaleIntervals.map(interval => {
+        if (typeof interval === 'number') {
+          // If the interval is a number, it represents the number of semitones
+          currentNoteIndex = (startingIndex + interval) % tones.length;
+        } else if (interval === 'W') {
+          // Whole step
+          currentNoteIndex = (startingIndex + 2) % tones.length;
+        } else if (interval === 'H') {
+          // Half step
+          currentNoteIndex = (startingIndex + 1) % tones.length;
+        }
+    
+        // Increase the octave if the array is looped back to the beginning
+        if (currentNoteIndex < startingIndex){
+          currentOctave++;
+        }
+        
+        const note = tones[currentNoteIndex];
+
+        startingIndex = currentNoteIndex;
+        return `${note}${currentOctave}`;
+      });
+    
+      return scaleNotes;
+    }
+
+    getRandomChord() { // return a random chord
+      const chords = Object.keys(CHORDS);
+      const randomChord = chords[Math.floor(Math.random()*chords.length)];
+      console.log(randomChord);
+      return randomChord;
+    };
+
+    getChordNotes(chord, startingOctave = 4) {
+      const { tones } = this.state;
+
+      const chordIntervals = CHORDS[chord];
+
+      let currentOctave = startingOctave;
+      let startingIndex = Math.floor(Math.random() * tones.length);
+
+      const chordNotes = chordIntervals.map(interval => {
+        let index = (startingIndex + interval) % tones.length;
+        const note = tones[index];
+        // Check if the note is lower than the previous note (crossed into a new octave)
+        if (index < startingIndex) {
+          currentOctave++;
+        }
+
+        startingIndex = index;
+        return `${note}${currentOctave}`;
+      });
+
+      return chordNotes;
+    };
+      
   // return an array of objects representing rows of the stat table
   getStatRows() {
     let id = 0, rows = [], note;
@@ -273,9 +383,53 @@ class PitchTrainer extends Component {
     }
     return rows;
   }
-  handlePlayNote() {
-    this.somePiano.play(this.state.notePlaying);
+
+  async handlePlayNote() {
+    // Assuming this.somePiano.play(note) plays a note using your piano library
+    const playingNotes = this.state.playingNotes;
+    // Define a delay function
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  
+    // Iterate through the notes and play each one
+    for (let index = 0; index < playingNotes.length; index++) {
+      // Play the note
+      this.somePiano.play(playingNotes[index]);
+      console.log(playingNotes[index]);
+  
+      // Wait for a short duration before playing the next note
+      await delay(1000); // Adjust the duration as needed
+    }
+  
+    // Perform actions after the last note is played
+    console.log("Last note played");
   }
+
+  async handlePlayNote() {
+    const { playingNotes, questionType } = this.state;
+  
+    // Assuming this.somePiano.play(note) plays a note using your piano library
+    if (questionType === 'chords' || questionType === 'intervals') {
+      // Play all notes simultaneously for chords
+      playingNotes.forEach(note => {
+        this.somePiano.play(note);
+        console.log(note);
+      });
+    } else {
+      // Play notes sequentially for other question types
+      for (let index = 0; index < playingNotes.length; index++) {
+        // Play the note
+        this.somePiano.play(playingNotes[index]);
+        console.log(playingNotes[index]);
+  
+        // Wait for a short duration before playing the next note
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Adjust the duration as needed
+      }
+  
+      // Perform actions after the last note is played
+      console.log("Last note played");
+    }
+  }
+
   handleNext() {
     const tonePlayingIdx = TONES.indexOf(this.state.tonePlaying);
 
@@ -285,29 +439,36 @@ class PitchTrainer extends Component {
     let statSkips = this.state.statSkips;
     if(!this.state.isCorrect) statSkips[tonePlayingIdx] += 1;
 
-    const nextTone = this.getNextTone();
-    const answers = this.getAnswers(this.state.tones, nextTone);
+    // const answers = this.getAnswers(this.state.tones, nextTone);
+    this.setQuestions();
     this.setState({
-      tonePlaying: nextTone,
-      notePlaying: this.getNextNote(nextTone),
-      answers: answers,
       gameStartTime: performance.now(),
       lastAnswer: -1,
       isCorrect: false,
       statQuestions: statQuestions,
       statSkips: statSkips,
-    }, () => this.handlePlayNote());
+    }, () => {
+      this.handlePlayNote();
+    }
+    );
   }
-  handleGameAnswer(note) {
-    const timeNow = performance.now(), tonePlayingIdx = TONES.indexOf(this.state.tonePlaying);
+
+  handleGameAnswer(answer, answerType) {
+    console.log(answer, answerType)
+    const timeNow = performance.now();
+
     if(!this.state.isCorrect) { // do nothing if already answered correctly
       let statTries = this.state.statTries;
+      const tonePlayingIdx = TONES.indexOf(this.state.tonePlaying)
       statTries[tonePlayingIdx] += 1;
-      if(note===this.state.tonePlaying) {
+
+      if(answer === this.state[answerType]) {
         let statTriesTime = this.state.statTriesTime;
         statTriesTime[tonePlayingIdx] += (timeNow - this.state.gameStartTime); // milliseconds
+
         let statCorrect = this.state.statCorrect;
         statCorrect[tonePlayingIdx] += 1;
+
         this.setState({
           isCorrect:true,
           lastAnswer:1,
@@ -318,19 +479,22 @@ class PitchTrainer extends Component {
       } else {
         this.setState({
           statTries: statTries,
-          lastAnswer:0,
+          lastAnswer: 0,
         });
       }
     } 
   }
+  
   render() {
+    const { questionType } = this.state;
+    const correctAnswer = (questionType === 'notes') ? this.state.tonePlaying : (questionType === 'intervals') ? this.state.intervalPlaying : (questionType === 'scales') ? this.state.scalePlaying : this.state.chordPlaying;
     return (
       <Grid
         container
-        spacing={32}
+        spacing={5}
         direction="column"
         alignItems="center"
-        style={{ minHeight: '90vh', width: '100%', margin: 'auto' }}
+        style={{ minHeight: '70vh', width: '100%', margin: 'auto' }}
       >
         <Grid item xs={"auto"}>
           <h1>Pitch Listening Practice</h1>
@@ -354,7 +518,7 @@ class PitchTrainer extends Component {
                 </Button>
               </Grid>
               <Grid item xs={6} sm={6}>
-                <Button fullWidth={true} variant="contained" className="button pitch-trainer-button" onClick={() => this.handleNext()}>
+                <Button fullWidth={true} variant="contained" className="button pitch-trainer-button" onClick={() => {this.handleNext()}}>
                   {(!this.state.isCorrect) ?
                     (<SkipNextIcon className="leftIcon pitch-trainer-leftIcon" />) :
                     (<NavigateNextIcon className="leftIcon pitch-trainer-leftIcon" />)
@@ -370,24 +534,23 @@ class PitchTrainer extends Component {
           <Grid item xs={"auto"}>
             <TonesAnswerButtons
               answers={this.state.answers}
-              handleGameAnswer={(note) => this.handleGameAnswer(note)}
-            />
+              handleGameAnswer={(answer) => this.handleGameAnswer(answer, this.state.questionType === 'notes' ? 'tonePlaying' : (this.state.questionType === 'intervals' ? 'intervalPlaying' : (this.state.questionType === 'scales' ? 'scalePlaying' : 'chordPlaying')))}/>
           </Grid>
         }
 
         {(this.state.isStarted) &&
           <Grid item>
             <Typography variant="h5">
-              {(this.state.lastAnswer === -1) ? "Make a choice" : (this.state.lastAnswer === 1) ? "Correct! The note is: " + this.state.notePlaying : "Sorry, try again."}
+              {(this.state.lastAnswer === -1) ? "Make a choice" : (this.state.lastAnswer === 1) ? "Correct! The note is: " + correctAnswer : "Sorry, try again."}
             </Typography>
           </Grid>
         }
 
-        {(!this.state.isStarted) && (!this.state.isFirstGame) &&
+        {/* {(!this.state.isStarted) && (!this.state.isFirstGame) &&
           <Grid item xs={"auto"}>
             <PitchTrainerStatistics rows={this.getStatRows()} />
           </Grid>
-        }
+        } */}
 
         {(!this.state.isStarted) ? (
           <Grid item xs={"auto"}>
@@ -395,6 +558,12 @@ class PitchTrainer extends Component {
               <ArrowRightIcon className="leftIcon pitch-trainer-leftIcon" />
               {this.state.isLoaded ? "Start" : "Loading"}
             </Button>
+            <FormGroup>
+                <FormControlLabel control={<Checkbox checked={questionType === 'notes'} onChange={() => this.setState({ questionType: 'notes' })} />} label="Notes" />
+                <FormControlLabel control={<Checkbox checked={questionType === 'intervals'} onChange={() => this.setState({ questionType: 'intervals' })} />} label="Intervals" />
+                <FormControlLabel control={<Checkbox checked={questionType === 'scales'} onChange={() => this.setState({ questionType: 'scales' })} />} label="Scales" />
+                <FormControlLabel control={<Checkbox checked={questionType === 'chords'} onChange={() => this.setState({ questionType: 'chords' })} />} label="Chords" />
+            </FormGroup>
           </Grid>
         ) : (
           <Grid item xs={"auto"}>
@@ -405,6 +574,7 @@ class PitchTrainer extends Component {
           </Grid>
         )}
       </Grid>
+      
     );
   }
 }

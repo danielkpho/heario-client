@@ -3,11 +3,13 @@ import { Paths } from './Routes';
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import pink from '@mui/material/colors/pink';
-import blue from '@mui/material/colors/blue';
+import { orange } from '@mui/material/colors';
+
+import './App.css';
 
 const theme = createTheme({
   palette: {
-    primary: blue,
+    primary: orange,
     secondary: pink,
   },
   typography: {
