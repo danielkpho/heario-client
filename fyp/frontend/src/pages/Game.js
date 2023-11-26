@@ -1,6 +1,5 @@
 import React, { Component, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import Lobby from './Lobby.js';
 // import { withStyles } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
@@ -119,7 +118,8 @@ class PitchTrainer extends Component {
       statTries: [0,0,0,0,0,0,0,0,0,0,0,0], // how many tries did user made for a tone
       statTriesTime: [0,0,0,0,0,0,0,0,0,0,0,0], // how long in total for user to decide a tone, used to calc average time
       statCorrect: [0,0,0,0,0,0,0,0,0,0,0,0], // how many correct ans in first selection, used to calc the accuracy
-      questionType: 'notes',
+      selectedQuestionType: ['notes'], // ['notes', 'intervals', 'scales', 'chords'
+      questionType: 'notes', // 
     };
     // this.NUM_CHOICES_LIST = Array.apply(null, {length: TONES.length}).map(Number.call, Number).map((r) => <MenuItem key={r} value={r}>{r}</MenuItem>).slice(3);
     this.ac = new AudioContext();
@@ -137,7 +137,10 @@ class PitchTrainer extends Component {
 //   };
 
     setQuestions(){
-      const { questionType } = this.state;
+      let questionType = this.state.questionType;
+      const randomTypeIndex = Math.floor(Math.random() * this.state.selectedQuestionType.length);
+      questionType = this.state.selectedQuestionType[randomTypeIndex];
+      this.setState({ questionType: questionType });
 
         if (questionType === 'notes') {
         const nextTone = this.getNextTone();
@@ -453,6 +456,31 @@ class PitchTrainer extends Component {
       console.log("reset button state");
     });
   };
+
+  handleCheckboxChange = (type) => {
+    this.setState((prevState) => {
+      const { selectedQuestionType } = prevState;
+      const index = selectedQuestionType.indexOf(type);
+  
+      if (index === -1) {
+        // Add the type to the array if it's not present
+        const updatedTypes = [...selectedQuestionType, type];
+        return { selectedQuestionType: updatedTypes };
+      } else {
+        // Remove the type from the array if it's present
+        const updatedTypes = [...selectedQuestionType];
+        updatedTypes.splice(index, 1);
+  
+        // Check if there is at least one checkbox checked
+        if (updatedTypes.length > 0) {
+          return { selectedQuestionType: updatedTypes };
+        } else {
+          // If no checkbox is checked, keep the state unchanged
+          return null;
+        }
+      }
+    });
+  };
   
   render() {
     const { questionType } = this.state;
@@ -531,10 +559,22 @@ class PitchTrainer extends Component {
               {this.state.isLoaded ? "Start" : "Loading"}
             </Button>
             <FormGroup>
-                <FormControlLabel control={<Checkbox checked={questionType === 'notes'} onChange={() => this.setState({ questionType: 'notes' })} />} label="Notes" />
-                <FormControlLabel control={<Checkbox checked={questionType === 'intervals'} onChange={() => this.setState({ questionType: 'intervals' })} />} label="Intervals" />
-                <FormControlLabel control={<Checkbox checked={questionType === 'scales'} onChange={() => this.setState({ questionType: 'scales' })} />} label="Scales" />
-                <FormControlLabel control={<Checkbox checked={questionType === 'chords'} onChange={() => this.setState({ questionType: 'chords' })} />} label="Chords" />
+              <FormControlLabel
+                control={<Checkbox checked={this.state.selectedQuestionType.includes('notes')} onChange={() => this.handleCheckboxChange('notes')} />}
+                label="Notes"
+              />
+              <FormControlLabel
+                control={<Checkbox checked={this.state.selectedQuestionType.includes('intervals')} onChange={() => this.handleCheckboxChange('intervals')} />}
+                label="Intervals"
+              />
+              <FormControlLabel
+                control={<Checkbox checked={this.state.selectedQuestionType.includes('scales')} onChange={() => this.handleCheckboxChange('scales')} />}
+                label="Scales"
+              />
+              <FormControlLabel
+                control={<Checkbox checked={this.state.selectedQuestionType.includes('chords')} onChange={() => this.handleCheckboxChange('chords')} />}
+                label="Chords"
+              />
             </FormGroup>
           </Grid>
         ) : (

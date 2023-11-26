@@ -12,7 +12,7 @@ export const INTERVALS = {
     'M6': [0,9],    // Major 6th
     'm7': [0,10],   // Minor 7th
     'M7': [0,11],   // Major 7th
-    'P8': [0,0]     // Perfect 8th (Octave)
+    'P8': [0,12]     // Perfect 8th (Octave)
   };
 
 export const SCALES = {
