@@ -5,6 +5,16 @@ import Grid from '@mui/material/Grid';
 
 import Button from '@mui/material/Button';
 
+function resetButtonState(setStateFunc) {
+  setStateFunc({ resetClickedButtons: true }, () => {
+    // After a short delay, reset the state
+    setTimeout(() => {
+      setStateFunc({ resetClickedButtons: false });
+    }, 100);
+    console.log("reset button state");
+  });
+}
+
 function TonesAnswerButton(props) {
     const [clickedButtons, setClickedButtons] = useState([]);
   
@@ -58,4 +68,4 @@ function TonesAnswerButton(props) {
     handleGameAnswer: PropTypes.func.isRequired,
   };
 
-export default TonesAnswerButton;
+export { TonesAnswerButton, resetButtonState };
