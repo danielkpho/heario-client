@@ -1,4 +1,4 @@
-import React, { Component, useEffect, useState } from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 // import { withStyles } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
@@ -34,7 +34,6 @@ class PitchTrainer extends Component {
       tones: ['C',  'C#', 'D', 'D#',  'E',  'F', 'F#', 'G', 'G#',  'A','A#',  'B'],
       isLoaded: false,
       isStarted: false,
-      // numChoices: 3,
       tonePlaying: 'C',
       intervalPlaying: 'M2',
       scalePlaying: 'Major',
@@ -45,7 +44,6 @@ class PitchTrainer extends Component {
       isCorrect: false,
       lastAnswer: -1, // -1: no ans, 0: wrong ans, 1: correct ans
       answers: [],
-      timeLimit: 10,
       // hasTimer: false,
       // statistics for last game if not first game
       isFirstGame: true,
@@ -57,7 +55,6 @@ class PitchTrainer extends Component {
       selectedQuestionType: ['notes'], // ['notes', 'intervals', 'scales', 'chords'
       questionType: 'notes', // 
     };
-    // this.NUM_CHOICES_LIST = Array.apply(null, {length: TONES.length}).map(Number.call, Number).map((r) => <MenuItem key={r} value={r}>{r}</MenuItem>).slice(3);
     this.ac = new AudioContext();
     soundfontInstrument(this.ac, 'acoustic_grand_piano', {
       soundfont: 'MusyngKite'
@@ -233,16 +230,6 @@ class PitchTrainer extends Component {
     } 
   }
   
-  // resetButtonState = () => {
-  //   this.setState({ resetClickedButtons: true }, () => {
-  //     // After a short delay, reset the state
-  //     setTimeout(() => {
-  //       this.setState({ resetClickedButtons: false });
-  //     }, 100);
-  //     console.log("reset button state");
-  //   });
-  // };
-
   handleCheckboxChange = (type) => {
     this.setState((prevState) => {
       const { selectedQuestionType } = prevState;

@@ -6,7 +6,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { TONES } from '../constants/NOTES.js';
 
-function getStatRows(statQuestions, statSkips, statTries, statTriesTime, statCorrect) {
+function getStatRows( statQuestions, statSkips, statTries, statTriesTime, statCorrect) {
   let id = 0, rows = [], note;
   for (let noteIdx = 0; noteIdx < TONES.length; ++noteIdx) {
     if (statQuestions[noteIdx]) { // only process existing data
