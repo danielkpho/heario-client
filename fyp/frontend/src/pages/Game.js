@@ -320,7 +320,7 @@ class PitchTrainer extends Component {
         {(this.state.isStarted) &&
           <Grid item>
             <Typography variant="h5">
-              {(this.state.lastAnswer === -1) ? "Make a choice" : (this.state.lastAnswer === 1) ? "Correct! The note is: " + correctAnswer : "Sorry, try again."}
+              {(this.state.lastAnswer === -1) ? "Make a choice" : (this.state.lastAnswer === 1) ? "Correct! The answer is: " + correctAnswer : "Sorry, try again."}
             </Typography>
           </Grid>
         }

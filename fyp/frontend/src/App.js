@@ -4,8 +4,18 @@ import { Paths } from './Routes';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import pink from '@mui/material/colors/pink';
 import { orange } from '@mui/material/colors';
+import { io } from 'socket.io-client';
 
 import './App.css';
+
+let connected = '';
+
+    const socket = io('http://localhost:8000');
+
+    socket.on('connect', () => {
+        connected = 'We got a signal!';
+        console.log(connected);
+  });
 
 const theme = createTheme({
   palette: {
