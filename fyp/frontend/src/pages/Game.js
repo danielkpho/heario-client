@@ -26,6 +26,9 @@ import '../components/Game.css';
 import { TonesAnswerButton, resetButtonState } from '../components/TonesAnswerButton.js';
 import { PitchTrainerStatistics, getStatRows } from '../components/PitchTrainerStats.js';
 import { getNextTone, getNextNote, getRandomInterval, getIntervalNotes, getRandomScale, getScaleNotes, getRandomChord, getChordNotes } from '../constants/audioUtils.js';
+import { nanoid } from 'nanoid';
+
+const { nanoid } = require('nanoid');
 
 class PitchTrainer extends Component {
   constructor(props) {
