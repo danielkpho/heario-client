@@ -23,7 +23,7 @@ function TonesAnswerButton(props) {
       props.handleGameAnswer(note);
     };
   
-    useEffect(() => {
+    useEffect(() => { // Reset the state when the resetClickedButtons prop is set to true
       if (props.resetClickedButtons) {
         // After a short delay, reset the state
         const timeoutId = setTimeout(() => {

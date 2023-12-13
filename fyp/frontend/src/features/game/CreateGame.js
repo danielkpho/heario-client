@@ -3,21 +3,35 @@ import { useSelector, useDispatch } from 'react-redux';
 import { socket } from '../../api/socket';
 import { fetchGameId, gameId, addPlayer } from "./gameSlice";
 import Settings from './Settings';
-
+  
 export default function CreateGame(){
     const dispatch = useDispatch();
 
     const idStatus = useSelector(state => state.game.status);
     const id = useSelector(gameId);
     const players = useSelector(state => state.game.players);
+    socket.emit("createRoom", { id, roundSettings:[] });
 
+    const [isSocketConnected, setIsSocketConnected] = useState(socket.connected);
+    
     useEffect(() => {
-        if(idStatus === 'idle' && socket.connected){
-            dispatch(fetchGameId(socket.id.slice(-12)));
+        if (isSocketConnected) {
+            // console.log("useEffect triggered");
+            // console.log("idStatus:", idStatus);
+            // console.log("socket.connected:", socket.connected); 
+            if(idStatus === 'idle' && socket.connected){
+                dispatch(fetchGameId(socket.id.slice(-12))); // 
+            }   
+        } else {
+            socket.on('connect', () => {
+                console.log('connecting to server');
+                setIsSocketConnected(true);
+            });
         }
+         
     }, [idStatus, dispatch, socket.connected]);
 
-    useEffect(() => {  
+    useEffect(() => { 
         if (id) {
             socket.emit("createRoom", { id, roundSettings:[] });
         } else {

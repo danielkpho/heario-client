@@ -30,6 +30,11 @@ export default function Answers() {
   //     socket.emit("joinRoom", { id, name });
   //   }
   // }, []);
+  function joinRoom() {
+    if (id && name) {
+      socket.emit("joinRoom", { id, name });
+      setJoinedRoom(true);
+    }}
 
   useEffect(() => {
     socket.on("answers", data => {
@@ -39,12 +44,7 @@ export default function Answers() {
     });
   });
 
-  function joinRoom() {
-    if (id && name) {
-      socket.emit("joinRoom", { id, name });
-      setJoinedRoom(true);
-    }
-  }
+  
 
   function submitAnswer() {
     setFinalAnswer(true);

@@ -48,6 +48,8 @@ import { Route, Routes, BrowserRouter } from 'react-router-dom';
 import Question from './features/questions/Question';
 import Answers from './features/questions/Answers';
 import { socket } from './api/socket';
+import Home from './features/game/Home';
+import { id } from './features/game/gameSlice';
 
 const App = () => {
   // Assuming you have the socket instance
@@ -59,6 +61,7 @@ const App = () => {
           <Route path="/" exact element={ <CreateGame/> } />  
           <Route path="/game/question/:id" exact element={ <Question/> } />
           <Route path="/game/answers/:id" exact element={ <Answers/> } />
+          <Route path="/home" exact element={ <Home/> } />
         </Routes>
       </BrowserRouter>
     </div>

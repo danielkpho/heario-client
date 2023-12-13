@@ -1,64 +1,29 @@
-// const Room = require('./Room.js');
-// const express = require('express');
-// const socketio = require('socket.io');
-// const cors = require('cors');
-
-// const io = require("socket.io")(httpServer, {
-//     cors: {
-//       origin: "http://localhost:3000",
-//       methods: ["GET", "POST"],
-//       allowedHeaders: ["my-custom-header"],
-//       credentials: true
-//     }
-//   });
-
-// httpServer.listen(8080, () => {
-//     console.log('listening on *:8080');
-// }
-// );
-
-
-// const PORT = 8080; // port to run server on
-
-// const app = express();
-// const expressServer = app.listen(PORT, () => // start server on port 8000
-//     console.log(`Server has started on port ${PORT}`)
-//     );
-
-// app.use(cors());
-
-// const io = socketio(expressServer, {
-//     cors: {
-//         origin: ["http://localhost:3000", "http://localhost:8080"], // allow requests from frontend on port 3000
-//         methods: ['GET', 'POST'],
-//         allowedHeaders: ["content-type"]
-//         credentials: true,
-//     }
-// });
-
+const Room = require('./Room.js');
 const express = require('express');
+const socketio = require('socket.io');
 const cors = require('cors');
+const PORT = 8080; // port to run server on
 
 const app = express();
+const expressServer = app.listen(PORT, () => // start server on port 8080
+    console.log("Server has started on port " + PORT)
+);
 
-app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true,
-}));
+app.use(cors());
 
-// ... other server configurations
-
-app.listen(8000, () => {
-  console.log('Server is running on port 8000');
+const io = socketio(expressServer, {
+    cors: {
+        origin: ['http://localhost:3000', 'http://localhost:8080'],
+        credentials: true,
+    },
 });
-
 
 const rooms = {};
 
 io.on('connection', socket => { 
     console.log('user with socket id ' + socket.id + ' connected');
 
-    socket.on("createRoom", ({ id, roundSettings}) => { // host creates room
+    socket.on("createRoom", ({ id, roundSettings }) => { // host creates room
         if (!rooms[id]) {
             rooms[id] = new Room(id, socket.id, roundSettings);
             console.log(rooms[id]);
@@ -70,7 +35,7 @@ io.on('connection', socket => {
     socket.on("joinRoom", ({id, name}) => { // player joins room
         console.log(name);
         const room = rooms[id];
-        if (!room) return;
+        if (!room) return; 
         socket.join(id);
         room.addPlayer(socket.id, name);
         if (room.getPlayer(socket.id)){

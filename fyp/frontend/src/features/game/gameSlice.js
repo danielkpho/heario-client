@@ -1,8 +1,24 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-export const fetchGameId = createAsyncThunk("game/fetchGameId", async id => {
-    return id;
+// export const fetchGameId = createAsyncThunk("game/fetchGameId", async id => {
+//     return id; 
+// });
+
+export const fetchGameId = createAsyncThunk("game/fetchGameId", async () => {
+  try {
+      // Simulate an asynchronous operation, such as fetching from an API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Generate a random ID for testing purposes
+      const generatedId = Math.floor(Math.random() * 1000);
+
+      return { id: generatedId };
+  } catch (error) {
+      throw new Error("Failed to fetch game ID");
+  } 
+  console.log("fetchGameId being called");
 });
+
 
 export const gameSlice = createSlice({
     name: "game",
