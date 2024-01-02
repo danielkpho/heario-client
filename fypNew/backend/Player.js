@@ -6,7 +6,7 @@ class Player {
 
     }
     setScore(action){
-        this.score = this.score += action.payload;
+        this.score += action;
     }
     getScore(){
         return this.score;
@@ -16,6 +16,9 @@ class Player {
     }
     getId(){
         return this.id;
+    }
+    resetScore(){
+        this.score = 0;
     }
 }
 

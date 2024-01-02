@@ -5,10 +5,11 @@ const initialState = {
     id: null,
     error: null,
     status: 'idle',
-    players: {},
+    players: [], // { id: 1, name: 'player1', score: 0 }
     roundSettings: {
         rounds: 3,
         time: 10,
+        sharps: false,
     },
     roundCount: 1,
     questionCount: 1,
@@ -37,6 +38,9 @@ export const gameSlice = createSlice({
         setScores: (state, action) => {
             state.scores = [...action.payload];
         },
+        setPlayerScore: (state, action) => {
+            state.players[action.payload.id].score = action.payload.score;
+        },
         setIsRoundOver: (state, action) => {  
             state.isRoundOver = action.payload;
         },
@@ -46,9 +50,11 @@ export const gameSlice = createSlice({
         setIsStarted: (state, action) => {
             state.isStarted = action.payload;
         },
+        setStatus: (state, action) => {
+            state.status = action.payload;
+        },
         addPlayer: (state, action) => {
             state.players[action.payload.id] = action.payload;
-            console.log(JSON.parse(JSON.stringify(state.players)));
         },
         updateRoundSettings: (state, action) => {
             state.roundSettings = action.payload;
@@ -57,6 +63,14 @@ export const gameSlice = createSlice({
             state.players = action.payload;
             console.log(state.players);
         },
+        resetGame: (state) => {
+            state.roundCount = 1;
+            state.questionCount = 1;
+            setIsRoundOver(false);
+            setIsGameOver(false);
+            setIsStarted(false);
+            setStatus('idle');
+        },   
     }
 });
 
@@ -66,17 +80,21 @@ export const {
     incrementRound,
     incrementQuestion,
     setScores,
+    setPlayerScore,
     setIsRoundOver,
     setIsGameOver,
     setIsStarted,
+    setStatus,
     addPlayer,
     updateRoundSettings,
     allPlayers,
+    resetGame,
 } = gameSlice.actions;
 
 export const roundCount = (state) => state.game.roundCount;
 export const questionCount = (state) => state.game.questionCount;
 export const scores = (state) => state.game.scores;
 export const gameId = (state) => state.game.id;
+export const selectTimer = (state) => state.game.roundSettings.time;
 
 export default gameSlice.reducer;

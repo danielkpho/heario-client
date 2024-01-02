@@ -7,10 +7,11 @@ class Room {
         this.id = id;
         this.hostId = hostId;
         this.players = {};
-        this.roundCount = 0;
+        this.roundCount = 1;
         this.roundSettings = roundSettings;
         this.questionCount = 0;
         this.question = null;
+        this.started = false;
     }
     setRoundSettings(settings, callback){
         this.roundSettings = settings;
@@ -30,8 +31,8 @@ class Room {
     getAllPlayers(){
         return this.players;
     }
-    async newQuestion(){
-        const noteQuestion = await NoteQuestion.init();
+    async newQuestion(sharps){
+        const noteQuestion = await NoteQuestion.init(sharps);
         
         const note = noteQuestion.getNote();
         const tone = noteQuestion.getTone();
@@ -68,9 +69,8 @@ class Room {
     setPlayerScore(playerId, score){
         this.players[playerId].setScore(score);
         const player = this.players[playerId];
-        const Score = player.getScore(); // TODO 
-
-        console.log(`Player ID: ${playerId}, Score: ${Score}`);
+        const Score = player.getScore();
+        console.log(`Player ID: ${playerId}, Score: ${score}`);
     }
     getScores(){
         const scores = [];
@@ -83,6 +83,16 @@ class Room {
         console.log(scores);
         scores.sort((a, b) => (a.score < b.score) ? 1 : -1);
         return scores;
+    }
+    removePlayer(id){
+        delete this.players[id];
+    }
+    resetGame(){
+        for (let player in this.players){
+            this.players[player].resetScore();
+        }
+        this.roundCount = 0;
+        this.questionCount = 0;
     }
 }
 
