@@ -1,14 +1,9 @@
-import React , { useState, useEffect}  from "react";
-import { useParams } from "react-router-dom";
-import { socket } from "../api/socket";
-import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { allPlayers, isStarted, setIsStarted, scores, setPlayerScore } from "../features/gameSlice";
+import React from "react";
+import { useSelector } from "react-redux";
+
 import { Grid, Paper, Typography } from '@mui/material';
 
 export default function Leaderboard(){
-    const { id } = useParams();
-    const dispatch = useDispatch();
     const players = useSelector(state => state.game.players);
     const playersArray = Object.values(players);
     const sortedPlayers = playersArray.sort((a, b) => b.score - a.score);

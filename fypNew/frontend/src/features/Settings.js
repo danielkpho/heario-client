@@ -1,38 +1,26 @@
 import React , {useState, useEffect} from "react";
-import { Form, useNavigate } from "react-router-dom";
-// import { Form, Button } from "react-bootstrap";
+import { useNavigate, useParams } from "react-router-dom";
 import { socket } from "../api/socket";
-import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { setHostId, setIsStarted, updateRoundSettings, setIsRoundOver, setStatus, selectTimer } from "./gameSlice";
-import { FormControlLabel, FormGroup, Checkbox, Grid, Button, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 
-
+import { FormControlLabel, Checkbox, Grid, Button, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 
 export default function Settings(){
     const [roundSettings, setRoundSettings] = useState({
         rounds: 3, 
         time: 10,
         sharps: false,
+        notes: true,
+        intervals: false,
+        scales: false,
+        chords: false
     }); 
     const hostId = useSelector(state => state.game.hostId);
     const dispatch = useDispatch();
     const roomId = useParams();
     const navigate = useNavigate();
-    const isStarted = useSelector(state => state.game.isStarted);
     const duration = useSelector(selectTimer);
-    
-    const [selectedOptions, setSelectedOptions] = useState({
-        notes: true,
-        intervals: false,
-        scales: false,
-        chords: false,
-    });
-
-    const handleCheckboxChange = (event) => {
-        setSelectedOptions({ ...selectedOptions, [event.target.name]: event.target.checked });
-    };
-
 
     useEffect(() => {
         socket.emit("getHostId", { roomId: roomId.id });
@@ -62,29 +50,34 @@ export default function Settings(){
 
     
     const handleChange = (event) => {
-        const { name, value } = event.target;
-        // const updatedValue = parseInt(value);
-      
+        const { name, value, checked } = event.target;
+    
         if (socket.id === hostId) {
-          setRoundSettings((prevRoundSettings) => {
-            const updatedSettings = {
-              ...prevRoundSettings,
-              [name]: value,
-            };
-      
-            socket.emit("updateSettings", { id: roomId.id, roundSettings: updatedSettings });
-            console.log(roomId.id, updatedSettings);
-      
-            return updatedSettings;
-          });
+            setRoundSettings((prevRoundSettings) => {
+                const updatedSettings = {
+                    ...prevRoundSettings,
+                    [name]: checked !== undefined ? checked : value, // if checked is undefined, then it is a select
+                };
+
+                const atLeastOneCategory = Object.values(updatedSettings).slice(3).some((value) => value === true);
+                if (!atLeastOneCategory) {
+                    return prevRoundSettings;
+                }
+    
+                socket.emit("updateSettings", { id: roomId.id, roundSettings: updatedSettings });
+                console.log(roomId.id, updatedSettings);
+    
+                return updatedSettings;
+            });
         }
-      };
+    };
     
     function handleLeave(){
         if (socket.id === hostId){
             socket.emit("deleteLobby", { roomId: roomId.id });
+        } else {
+            socket.emit("leaveRoom", { roomId: roomId.id });
         }
-        socket.emit("leaveRoom", { roomId: roomId.id });
         navigate("/");
         dispatch(setStatus("idle"));
     }
@@ -169,24 +162,34 @@ export default function Settings(){
                     >
                         <Grid fullWidth justifyContent={"center"} padding={2}>
                             <Grid item xs={12}>
-                                Type
+                                <h3>Select the type of questions</h3>
                             </Grid>
                         </Grid>
                         <Grid container direction={"row"} justifyContent={"space-around"}>
-                            <FormGroup>
                                 <Grid item>
-                                    <FormControlLabel control={<Checkbox defaultChecked color="cream"  />} label="Notes" />
+                                    <FormControlLabel
+                                        control={<Checkbox checked={roundSettings.notes} onChange={handleChange} name="notes" color="cream" />}
+                                        label="Notes"
+                                    />                                
                                 </Grid>
                                 <Grid item>
-                                    <FormControlLabel control={<Checkbox color="cream" />} label="Intervals" />
+                                    <FormControlLabel
+                                        control={<Checkbox checked={roundSettings.intervals} onChange={handleChange} name="intervals" color="cream" />}
+                                        label="Intervals"
+                                    />
                                 </Grid>
                                 <Grid item>
-                                    <FormControlLabel control={<Checkbox color="cream" />} label="Scales" />
+                                    <FormControlLabel
+                                        control={<Checkbox checked={roundSettings.scales} onChange={handleChange} name="scales" color="cream" />}
+                                        label="Scales"
+                                    />                                
                                 </Grid>
                                 <Grid item>
-                                    <FormControlLabel control={<Checkbox color="cream" />} label="Chords" />
+                                    <FormControlLabel
+                                        control={<Checkbox checked={roundSettings.chords} onChange={handleChange} name="chords" color="cream" />}
+                                        label="Chords"
+                                    />                                
                                 </Grid>
-                            </FormGroup>
                         </Grid>
                     </Grid>
                     <Grid item xs={6}>

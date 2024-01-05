@@ -1,7 +1,6 @@
 import React from "react"
 import { socket } from "../api/socket";
-import { useSelector, useDispatch } from "react-redux";
-import { allPlayers, isStarted, setIsStarted, scores, setPlayerScore } from "../features/gameSlice";
+import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 
@@ -42,7 +41,7 @@ export default function Chat(){
         <Typography variant="h6" gutterBottom>
           Chat Box
         </Typography>
-        <div style={{ height: '200px', overflowY: 'auto', marginBottom: '10px' }}>
+        <div style={{ height: '400px', overflowY: 'auto', marginBottom: '10px' }}>
           {messages.map((message, index) => (
             <div key={index}>
               <strong>{message.user}:</strong> {message.text}

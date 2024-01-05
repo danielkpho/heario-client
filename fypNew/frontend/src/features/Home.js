@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { io } from "socket.io-client";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { socket } from "../api/socket";
 import { nanoid } from "nanoid";
-import { useNavigate } from "react-router-dom";
-import { gameId, addPlayer, setId } from "../features/gameSlice";
-import { useSelector, useDispatch } from "react-redux";
 
-import { spacing } from '@mui/system';
-import { Button, Grid, TextField, Container, FormControl, InputLabel, Input } from "@mui/material";
+import { setId } from "../features/gameSlice";
 
-
+import { Button, Grid, FormControl, InputLabel, Input } from "@mui/material";
 
 export default function Home(){
     const [roomId, setRoomId] = useState('');
@@ -17,11 +14,7 @@ export default function Home(){
     const [name, setName] = useState('');
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const players = useSelector(state => state.game.players);
-    const id = useSelector(gameId);
-    const isStarted = useSelector(state => state.game.isStarted);
     
-
     useEffect(() => {
         socket.emit("getRooms");
     }, []);
@@ -33,7 +26,7 @@ export default function Home(){
     function createGame(){
         const roomId = nanoid(4);
             if (name) {
-            socket.emit("createRoom", { id: roomId, roundSettings: {rounds: 3, time: 10, sharps: false}, name })
+            socket.emit("createRoom", { id: roomId, roundSettings: {rounds: 3, time: 10, sharps: false, notes: true, intervals: false, scales: false, chords: false}, name })
             navigate("/lobby/" + roomId);
             dispatch(setId(roomId));
         }
@@ -55,16 +48,13 @@ export default function Home(){
         }
     }
 
-
-
     return (
         <Grid
             container
-            spacing={0}
             direction="column"
             alignItems="center"
             justifyContent="center"
-            marginTop={10}
+            marginTop={5}
         >
             <Grid item xs={8} justifyContent={"center"}>
                 <FormControl>
@@ -74,11 +64,13 @@ export default function Home(){
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
-                            inputProps={{ style: { color: 'white' }, maxLength: 10}} 
+                            inputProps={{ style: { color: 'white' }, maxLength: 15}}
+                            
+                            helperText={!name ? "Please enter your name" : ""}
                         />
                 </FormControl>
             </Grid>
-            <Grid item xs={8} justifyContent={"center"}>
+            <Grid item xs={8}>
                 <br></br>
                 <FormControl>
                     <InputLabel style={{ color: 'white' }}>Enter Room ID</InputLabel>
@@ -97,19 +89,40 @@ export default function Home(){
                     alignItems="center"
                     justifyContent="center"
                     marginTop={2}
-
                 >
-                    
-                    <Grid item xs={8} justifyContent={"center"}>
-                        <Button type="submit" variant="contained" color="secondary" onClick={createGame}>
+                    <Grid item xs={8}>
+                        <Button type="submit" variant="contained" color="green" onClick={createGame}>
                             Create Game
                         </Button>
                     </Grid>
-                    <Grid item xs={8} justifyContent={"center"}>
+                    <Grid item xs={8}>
                         <br></br>
                         <Button variant="contained" color="primary" onClick={joinGame}>
                             Join Game
                         </Button>
+                    </Grid>
+                </Grid>
+                <Grid
+                    container
+                    direction="column"
+                    alignItems="center"
+                    justifyContent="center"
+                    marginTop={2}
+                    style={{ background: "white"}}
+                    width={300}
+                    padding={2}
+                    marginTop={4}
+                >
+                    <Grid item xs={8}>
+                        About
+                    </Grid>
+                    <Grid item xs={8} style={{ textAlign: "justify" }}>
+                    Hear.io is a free online multiplayer ear training game.
+
+                    A normal game consists of a few rounds, where every player has to pick the correct note, chord or interval being played to gain points
+
+                    The person with the most points at the end of the game, will then be crowned the winner!
+                    Have fun!
                     </Grid>
                 </Grid>
         </Grid>

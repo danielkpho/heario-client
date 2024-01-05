@@ -7,6 +7,7 @@ export const questionsSlice = createSlice({
         tone: [],
         answers: [],
         correctAnswer: [],
+        questionType: [],
     },
     reducers: {
         setNote: (state, action) => {
@@ -21,6 +22,9 @@ export const questionsSlice = createSlice({
         setCorrectAnswer: (state, action) => {
             state.correctAnswer = action.payload; 
         },
+        setQuestionType: (state, action) => {
+            state.questionType = action.payload;
+        },
     }
 });
 
@@ -29,6 +33,7 @@ export const {
     setTone,
     setAnswers,
     setCorrectAnswer,
+    setQuestionType,
 } = questionsSlice.actions;
 
 export const currentNote = state => state.questions.note;

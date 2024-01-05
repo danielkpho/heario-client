@@ -31,19 +31,21 @@ class Room {
     getAllPlayers(){
         return this.players;
     }
-    async newQuestion(sharps){
-        const noteQuestion = await NoteQuestion.init(sharps);
+    async newQuestion(sharps, notes, intervals, scales, chords){
+        const noteQuestion = await NoteQuestion.init(sharps, notes, intervals, scales, chords);
         
         const note = noteQuestion.getNote();
         const tone = noteQuestion.getTone();
         const possibleAnswers = noteQuestion.getPossibleAnswers();
         const correctAnswer = noteQuestion.getCorrectAnswer();
+        const questionType = noteQuestion.getQuestionType();
 
         this.question = new NoteQuestion({
             note,
             tone,
             possibleAnswers,
             correctAnswer,
+            questionType,
         })
         console.log(this.question); // works
         return Promise.resolve();
@@ -59,6 +61,9 @@ class Room {
     }
     getCorrectAnswer(){
         return this.question.getCorrectAnswer();
+    }
+    getQuestionType(){
+        return this.question.getQuestionType();
     }
     answerQuestion(playerId, answer){
         if(answer === this.question.getCorrectAnswer()){
@@ -93,6 +98,9 @@ class Room {
         }
         this.roundCount = 0;
         this.questionCount = 0;
+    }
+    setTypes(types){
+        this.types = types;
     }
 }
 

@@ -1,16 +1,16 @@
-import React , { useState, useEffect}  from "react";
+import React , { useEffect }  from "react";
 import { useParams } from "react-router-dom";
 import { socket } from "../api/socket";
 import Settings from "./Settings";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { allPlayers, isStarted, setIsStarted, scores, setPlayerScore, setIsGameOver } from "../features/gameSlice";
+
+import { allPlayers, setIsStarted, setIsGameOver } from "../features/gameSlice";
 
 import Game from "./Game";
 import Chat from "./Chat";
-import Timer from "./Timer";
 
-import { Button, Grid, TextField, Container, FormControl, InputLabel, Input, Paper, Typography, boxClasses } from "@mui/material";
+import { Grid, Paper, Typography } from "@mui/material";
 import { Stack } from "@mui/material";
 
 
@@ -19,13 +19,11 @@ export default function Lobby(){
     const dispatch = useDispatch();
     const players = useSelector(state => state.game.players);
     const isStarted = useSelector(state => state.game.isStarted);
-    const gameScores = useSelector(scores);
     const navigate = useNavigate();
     const roundCount = useSelector(state => state.game.roundCount);
     const status = useSelector(state => state.game.status);
-    const isGameOver = useSelector(state => state.game.isGameOver);
     
-    useEffect(() => {
+    useEffect(() => { // TODO
         window.onbeforeunload = () => {
             socket.emit("leaveRoom", { roomId: id });
             navigate("/");
@@ -87,8 +85,7 @@ export default function Lobby(){
         };
     }, [socket]);
 
-    
-    
+        
     return (
         <div>
             <Grid

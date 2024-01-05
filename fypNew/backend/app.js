@@ -71,6 +71,7 @@ io.on('connection', socket => {
         }
     });
 
+
     socket.on("getHostId", ({ roomId }) => { // player requests host id
         const room = rooms[roomId];
         if (room){
@@ -93,22 +94,23 @@ io.on('connection', socket => {
             room.setRoundSettings(roundSettings);
             room.started = true;
             // console.log(room.getQuestion());
-            io.to(roomId).emit(" d");
+            io.to(roomId).emit("gameStarted");
             io.to(roomId).emit("message", { name: "Console", message: "Game started!" });
             console.log('game started in room ' + roomId);
         }
     });
 
-    socket.on("getQuestion", async ({ roomId, sharps }) => { // player requests question
+    socket.on("getQuestion", async ({ roomId, sharps, notes, intervals, scales, chords }) => { // player requests question
         const room = rooms[roomId];
         if (room) {
-            await room.newQuestion(sharps);
+            await room.newQuestion(sharps, notes, intervals, scales, chords);
             note = room.getNote();
             tone = room.getTone();
             io.to(roomId).emit("note", note);
             io.to(roomId).emit("tone", tone);
             io.to(roomId).emit("answers", room.getQuestionAnswers());
             io.to(roomId).emit("correctAnswer", room.getCorrectAnswer());
+            io.to(roomId).emit("questionType", room.getQuestionType());
             console.log(room.roundCount)
             console.log('user with socket id ' + socket.id + ' requested question from room ' + roomId);
         }
@@ -181,10 +183,11 @@ io.on('connection', socket => {
     socket.on("leaveRoom", ({ roomId }) => { // player leaves room
         const room = rooms[roomId];
         if (room) {
+            playerName = room.getPlayer(socket.id).name;
             socket.leave(roomId);
             room.removePlayer(socket.id);
             io.to(roomId).emit("allPlayers", room.getAllPlayers());
-            io.to(roomId).emit("message", { name: "Console", message: " A player left the room!" });
+            io.to(roomId).emit("message", { name: "Console", message: playerName + " left the room!"});
             console.log('user with socket id ' + socket.id + ' left room ' + roomId);
         }
     });
@@ -219,8 +222,6 @@ io.on('connection', socket => {
             timer = setInterval(() => {
                 const currentTime = Date.now();
                 const remainingTime = Math.max(0, endTime - currentTime);
-                console.log(remainingTime)
-
                 io.to(roomId).emit("timer-update", Math.round(remainingTime/1000));
 
                 if (remainingTime <= 0) {

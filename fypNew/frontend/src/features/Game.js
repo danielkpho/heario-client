@@ -1,18 +1,19 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { socket } from "../api/socket";
-import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+
+import { instrument as soundfontInstrument } from "soundfont-player";
+
 import { setIsStarted, setScores, incrementRound, incrementQuestion, resetGame, setIsRoundOver, setIsGameOver, selectTimer, setStatus } from "./gameSlice";
 import { setAnswers } from "./questionsSlice";
-import { instrument as soundfontInstrument } from "soundfont-player";
-import { question, setNote, setTone, allAnswers, setSelectedAns, setCorrectAnswer, correctAns, currentTone } from "./questionsSlice";
-import Player from "./Player";
+import { setQuestionType, setTone, setCorrectAnswer, correctAns, currentTone } from "./questionsSlice";
+
 import Timer from "./Timer";
 import Leaderboard from "./Leaderboard";
+import { TonesAnswerButton } from "./TonesAnswerButtons";
 
-import { Grid, Button, Typography } from "@mui/material";
+import { Grid, Button } from "@mui/material";
 import { VolumeUp } from "@mui/icons-material";
 
 
@@ -30,6 +31,12 @@ export default function Game(){
     const correctAnswer = useSelector(correctAns);
     const isGameOver = useSelector(state => state.game.isGameOver);
     const isSharps = useSelector(state => state.game.roundSettings.sharps);
+    const isNotes = useSelector(state => state.game.roundSettings.notes);
+    const isIntervals = useSelector(state => state.game.roundSettings.intervals);
+    const isScales = useSelector(state => state.game.roundSettings.scales);
+    const isChords = useSelector(state => state.game.roundSettings.chords);
+    const questionType = useSelector(state => state.questions.questionType);
+    const tone = useSelector(currentTone);
     const navigate = useNavigate();
 
     let somePiano;
@@ -52,7 +59,7 @@ export default function Game(){
     useEffect(() => {
         if(isPianoReady){
             if (socket.id === hostId){ // emit the question to the server if the user is the host
-                socket.emit("getQuestion", { roomId: id , round: 1, sharps: isSharps});
+                socket.emit("getQuestion", { roomId: id , round: 1, sharps: isSharps, notes: isNotes, intervals: isIntervals, scales: isScales, chords: isChords});
             };
             return () => {
                 socket.off("gameStarted");
@@ -63,37 +70,58 @@ export default function Game(){
 
     useEffect(() => {
         if (isPianoReady){
-            socket.emit("getCorrectAnswer", { roomId: id });
+            // socket.emit("getCorrectAnswer", { roomId: id });
             socket.on("correctAnswer", (correctAnswer) => {
                 dispatch(setCorrectAnswer(correctAnswer));
-                console.log("correctAnswer: " + correctAnswer);
             });
-            socket.emit("getTone", { roomId: id });
+            // socket.emit("getTone", { roomId: id });
             socket.on("tone", (tone) => {
                 dispatch(setTone(tone));
                 console.log("question: " + tone);
                 handlePlayNote(tone);
                 console.log("tried playing note " + tone);
             });
-            socket.emit("getAnswers", { roomId: id });
+            // socket.emit("getAnswers", { roomId: id });
             socket.on("answers", (answers) => {
                 dispatch(setAnswers(answers));
             });
+            socket.on("questionType", (questionType) => {
+                dispatch(setQuestionType(questionType));
+            });
             return () => {
                 socket.off("correctAnswer");
+                socket.off("tone");
+                socket.off("answers");
+                
             };
         }
     }, [isPianoReady]);
 
-    const tone = useSelector(currentTone);
-
-    async function handlePlayNote(note = tone){
-        if (piano){
-                await
-                piano.play(note);
-                console.log("played note " + tone)
+    async function handlePlayNote() {
+        if (piano) {
+            try { 
+                if (Array.isArray(tone)) {
+                    if (questionType === 'scales'){
+                    // Play notes sequentially with a delay
+                        for (const note of tone) { 
+                            await piano.play(note);
+                            // Introduce a delay between notes
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                        }
+                        console.log("Played notes: " + tone.join(', '));
+                    } else {
+                        await Promise.all(tone.map(note => piano.play(note)));
+                        console.log("Played notes: " + tone.join(', '));
+                    }
+                } else {
+                    console.error("Invalid tone format:", tone);
+                }
+                
+            } catch (error) {
+                console.error("Error playing notes:", error);
+            }
         } else {
-            console.log("piano not ready");
+            console.log("Piano not ready");
         }
     }
 
@@ -111,7 +139,7 @@ export default function Game(){
         socket.on("nextRound", () => {
             console.log("roundCount: " + roundCount);
             if(roundCount < roundSettings.rounds){
-                socket.emit("getQuestion", { roomId: id, sharps: isSharps });
+                socket.emit("getQuestion", { roomId: id, sharps: isSharps, notes: isNotes, intervals: isIntervals, scales: isScales, chords: isChords });
                 socket.emit("startTimer", { roomId: id, duration })
                 dispatch(incrementRound());
                 dispatch(incrementQuestion());
@@ -176,7 +204,7 @@ export default function Game(){
                         <Grid item>
                             {!roundOver && (
                             <div>
-                                <Player />
+                                <TonesAnswerButton />
                             </div>           
                             )}
                         </Grid>
