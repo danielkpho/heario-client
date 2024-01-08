@@ -3,22 +3,28 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import Home from "./features/Home";
 import Lobby from "./features/Lobby";
+import Register from "./features/Register";
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 import Grid from '@mui/material/Grid';
-import { CssBaseline } from "@mui/material";
+import { CssBaseline, Typography, Backdrop } from "@mui/material";
+
+import "./Knewave.css"
+
+import { blue, green, red } from "@mui/material/colors";
+
 
 const theme = createTheme({
     palette: {
         background: {
           // default: "#20212a"
-          default: "#17255A"
+          default: "white"
         },
         primary: {
           // main: '#ff4a3b',
-          main: "#D88373",
-          dark: "#b23329",
+          main: blue[500],
+          dark: blue[700],
         },
         secondary: {
           // main: "#70a7b6",
@@ -31,7 +37,7 @@ const theme = createTheme({
           main: "#ede6e2",
         },
         green:{
-          main: "#00bf63",
+          main: green[500],
         },
       text: {
         primary: "#00000",
@@ -40,9 +46,13 @@ const theme = createTheme({
     },
     typography: {     
       body1: {
-        fontWeight: 500,
+        fontWeight: 200,
       },
+      h2:{
+        fontFamily: 'Knewave'
+      }
     },
+  
     // customBorderRadius: {
     //   borderRadius: "16px",
     // },
@@ -54,18 +64,20 @@ function App() {
       <CssBaseline>
     <div>
     <Grid
-        alignItems="left"
         justifyContent="center"
-        margin={2}
+        marginTop={10}
       >
-      <Grid item xs={3} color='primary.main' fontSize={50}>
-        Hear.IO
+      <Grid item xs={3} color='green.main'>
+        <Typography variant="h2" color="green" align="center">
+          HEAR.IO
+        </Typography>
       </Grid>
-      </Grid>
+    </Grid>
       <BrowserRouter>
         <Routes>
           <Route path="/" exact element={ <Home/>} />
           <Route path="/lobby/:id" exact element={ <Lobby/>} />
+          <Route path="/register" exact element={ <Register/>} />
         </Routes>
       </BrowserRouter>
     </div>

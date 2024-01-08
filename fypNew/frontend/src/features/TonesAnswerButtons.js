@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import Grid from "@mui/material/Grid";
-import PropTypes from "prop-types";
 import { useParams } from "react-router-dom";
 
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
+import { Button } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { allAnswers, correctAns } from "./questionsSlice";
+import { incrementTries } from "./statSlice";
 import { socket } from "../api/socket";
 
 function TonesAnswerButton(){
@@ -49,7 +48,7 @@ function TonesAnswerButton(){
     ));
 
     function handleGameAnswer(note){
-        console.log("handleGameAnswer")
+        dispatch(incrementTries(correctAnswer));
         if (note === correctAnswer){
             setScore(answers.length - attempts);
             setLastAnswer(1);
@@ -96,9 +95,5 @@ function TonesAnswerButton(){
     );
     }
 
-    TonesAnswerButton.propTypes = {
-        // answers: PropTypes.array.isRequired,
-        // handleGameAnswer: PropTypes.func.isRequired,
-    };
 
 export { TonesAnswerButton };

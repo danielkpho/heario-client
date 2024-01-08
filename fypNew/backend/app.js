@@ -10,6 +10,7 @@ const expressServer = app.listen(PORT, () => // start server on port 8080
 );
 
 app.use(cors());
+app.use(express.json());
 
 const io = socketio(expressServer, {
     cors: {
@@ -19,6 +20,47 @@ const io = socketio(expressServer, {
 });
 
 const rooms = {};
+
+var mysql = require('mysql');
+
+var con = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "password",
+    database: "heariodb"
+});
+
+con.connect(function(err) {
+    if (err) throw err;
+    console.log("Connected!");
+});
+
+app.post('/register', function(req, res) {
+    const username = req.body.username;
+    const password = req.body.password;
+    console.log(username, password);
+
+    con.query("INSERT INTO users (username, password) VALUES (?, ?)", [username, password], (err, result) => { console.log(err);})
+    console.log("User registered");
+});
+
+app.post('/login', function(req, res) {
+    const username = req.body.username;
+    const password = req.body.password;
+
+    con.query("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, result) => {
+        if (err){
+            res.send({ err: err });
+            console.log(err);
+        } 
+        if (result.length > 0) {
+            res.send(result);
+        } else {
+            res.send({ message: "Wrong username/password combination!" })
+        }    
+    })
+});
+
 
 io.on('connection', socket => { 
     console.log('user with socket id ' + socket.id + ' connected');
@@ -100,10 +142,10 @@ io.on('connection', socket => {
         }
     });
 
-    socket.on("getQuestion", async ({ roomId, sharps, notes, intervals, scales, chords }) => { // player requests question
+    socket.on("getQuestion", async ({ roomId }) => { // player requests question
         const room = rooms[roomId];
         if (room) {
-            await room.newQuestion(sharps, notes, intervals, scales, chords);
+            await room.newQuestion();
             note = room.getNote();
             tone = room.getTone();
             io.to(roomId).emit("note", note);
@@ -111,7 +153,7 @@ io.on('connection', socket => {
             io.to(roomId).emit("answers", room.getQuestionAnswers());
             io.to(roomId).emit("correctAnswer", room.getCorrectAnswer());
             io.to(roomId).emit("questionType", room.getQuestionType());
-            console.log(room.roundCount)
+            console.log("roundCount " + room.roundCount)
             console.log('user with socket id ' + socket.id + ' requested question from room ' + roomId);
         }
     });
@@ -248,7 +290,6 @@ io.on('connection', socket => {
                     console.log("nextround emitted")
                     clearInterval(timer);
                     room.roundCount++;
-                    console.log(room.roundCount);
                     io.to(roomId).emit("nextRound");
                 }
             }, 1000);

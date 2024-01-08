@@ -59,7 +59,13 @@ export default function Settings(){
                     [name]: checked !== undefined ? checked : value, // if checked is undefined, then it is a select
                 };
 
-                const atLeastOneCategory = Object.values(updatedSettings).slice(3).some((value) => value === true);
+                const atLeastOneCategory =
+                    updatedSettings.notes ||
+                    updatedSettings.sharps ||
+                    updatedSettings.intervals ||
+                    updatedSettings.scales ||
+                    updatedSettings.chords;
+
                 if (!atLeastOneCategory) {
                     return prevRoundSettings;
                 }
@@ -136,7 +142,7 @@ export default function Settings(){
                         </Select>
                     </FormControl>
                     </Grid>
-                    <Grid xs={6} item justifyContent={"flex-start"}>
+                    {/* <Grid xs={6} item justifyContent={"flex-start"}>
                         Sharps: 
                     </Grid>
                     <Grid item xs={6}>
@@ -153,7 +159,7 @@ export default function Settings(){
                                     <MenuItem value={false} >No</MenuItem>
                                 </Select>
                         </FormControl>
-                    </Grid>
+                    </Grid> */}
                     <Grid
                         container
                         justifyContent={"center"}
@@ -170,6 +176,12 @@ export default function Settings(){
                                     <FormControlLabel
                                         control={<Checkbox checked={roundSettings.notes} onChange={handleChange} name="notes" color="cream" />}
                                         label="Notes"
+                                    />                                
+                                </Grid>
+                                <Grid item>
+                                    <FormControlLabel
+                                        control={<Checkbox checked={roundSettings.sharps} onChange={handleChange} name="sharps" color="cream" />}
+                                        label="#/b Notes"
                                     />                                
                                 </Grid>
                                 <Grid item>

@@ -14,21 +14,21 @@ class NoteQuestion{
         this.correctAnswer = correctAnswer;
         this.questionType = questionType;
     }
-    static init(sharps, notes, intervals, scales, chords){ // to fix 
+    static init(type){ // to fix 
         let note;
         let tone;
         let possibleAnswers;
         let correctAnswer;
         let questionType;
         const randomOctave = Math.floor(Math.random() * 6) + 1;
-        if (notes){
+        if (type === "notes"){
             note = tonal.Note.names()[Math.floor(Math.random() * tonal.Note.names().length)];
             tone = [note + randomOctave];
             possibleAnswers = tonal.Note.names();
             correctAnswer = note;
             questionType = "notes";
         }
-        if (sharps){
+        if (type === "sharps"){
             const allNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A","A#", "B"];
 
             note = allNotes[Math.floor(Math.random() * allNotes.length)];
@@ -37,7 +37,7 @@ class NoteQuestion{
             correctAnswer = note;
             questionType = "notes";
         }
-        if (intervals){
+        if (type === "intervals"){
             const initialNote = tonal.Note.names()[Math.floor(Math.random() * tonal.Note.names().length)] + randomOctave;
             const allIntervals = tonal.Interval.names();
             const interval = allIntervals[Math.floor(Math.random() * allIntervals.length)];
@@ -49,7 +49,7 @@ class NoteQuestion{
             tone = [initialNote, intervalTone];
             questionType = "intervals";
         }
-        if (scales){
+        if (type === "scales"){
             const initialNote = tonal.Note.names()[Math.floor(Math.random() * tonal.Note.names().length)] + randomOctave;
             const allScales = ["major", "minor", "dorian", "phrygian", "lydian", "mixolydian", "locrian"]
             const scale = allScales[Math.floor(Math.random() * allScales.length)];
@@ -61,7 +61,7 @@ class NoteQuestion{
             tone = scaleTone;
             questionType = "scales";
         }
-        if (chords){
+        if (type === "chords"){
             const initialNote = tonal.Note.names()[Math.floor(Math.random() * tonal.Note.names().length)];
             
             const allChords = ["major", "minor", "augmented", "diminished", "dominant"]

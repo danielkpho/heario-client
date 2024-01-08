@@ -6,15 +6,19 @@ import { useDispatch, useSelector } from "react-redux";
 import { instrument as soundfontInstrument } from "soundfont-player";
 
 import { setIsStarted, setScores, incrementRound, incrementQuestion, resetGame, setIsRoundOver, setIsGameOver, selectTimer, setStatus } from "./gameSlice";
-import { setAnswers } from "./questionsSlice";
-import { setQuestionType, setTone, setCorrectAnswer, correctAns, currentTone } from "./questionsSlice";
+import { newQuestion, resetStats } from "./statSlice.js"
+import { setAnswers, setQuestionType, setTone, setCorrectAnswer, correctAns, currentTone } from "./questionsSlice";
+
 
 import Timer from "./Timer";
 import Leaderboard from "./Leaderboard";
+import Statistics from "./Statistics";
 import { TonesAnswerButton } from "./TonesAnswerButtons";
 
-import { Grid, Button } from "@mui/material";
+import { Grid, Button, Backdrop } from "@mui/material";
 import { VolumeUp } from "@mui/icons-material";
+
+import Axios from "axios";
 
 
 export default function Game(){
@@ -39,6 +43,8 @@ export default function Game(){
     const tone = useSelector(currentTone);
     const navigate = useNavigate();
 
+    const [showBackdrop, setShowBackdrop] = useState(false);
+
     let somePiano;
     useEffect(() => { // fix loading 
         const ac = new AudioContext();
@@ -56,10 +62,11 @@ export default function Game(){
       }, []);
 
 
+
     useEffect(() => {
         if(isPianoReady){
             if (socket.id === hostId){ // emit the question to the server if the user is the host
-                socket.emit("getQuestion", { roomId: id , round: 1, sharps: isSharps, notes: isNotes, intervals: isIntervals, scales: isScales, chords: isChords});
+                socket.emit("getQuestion", { roomId: id });
             };
             return () => {
                 socket.off("gameStarted");
@@ -73,6 +80,7 @@ export default function Game(){
             // socket.emit("getCorrectAnswer", { roomId: id });
             socket.on("correctAnswer", (correctAnswer) => {
                 dispatch(setCorrectAnswer(correctAnswer));
+                dispatch(newQuestion(correctAnswer));
             });
             // socket.emit("getTone", { roomId: id });
             socket.on("tone", (tone) => {
@@ -128,6 +136,7 @@ export default function Game(){
     function restartGame(){
         socket.emit("resetGame", { roomId: id });
         dispatch(resetGame());
+        dispatch(resetStats());
     };
 
 
@@ -163,11 +172,19 @@ export default function Game(){
         };
     });
 
+    function handleOpen(){
+        setShowBackdrop(true);
+    }
+    function handleClose(){
+        setShowBackdrop(false);
+    }
+
     function handleLeave(){
         socket.emit("leaveRoom", { roomId: id });
         dispatch(setIsStarted(false));
         dispatch(setIsGameOver(false));
         dispatch(resetGame());
+        dispatch(resetStats());
         dispatch(setStatus("idle"));
         navigate("/");
     }
@@ -247,6 +264,22 @@ export default function Game(){
                             >
                                 Leave Lobby
                             </Button>
+                        </Grid>
+                        <Grid item>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => handleOpen()}
+                            >
+                                Statistics
+                            </Button>
+                            <Backdrop
+                                sx= {{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                                open={showBackdrop}
+                                onClick={handleClose}
+                            >
+                                <Statistics />
+                            </Backdrop>
                         </Grid>
                     {isHost && (
                         <Grid item>

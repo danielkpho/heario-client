@@ -9,18 +9,30 @@ class Room {
         this.players = {};
         this.roundCount = 1;
         this.roundSettings = roundSettings;
+        this.typesSelected = this.generateTypesSelected();
+        this.currentIndex = 0;
         this.questionCount = 0;
         this.question = null;
         this.started = false;
     }
+    generateTypesSelected(){ // generate types selected based on roundSettings
+        return Object.entries(this.roundSettings)
+        .filter(([key, value]) => value === true)
+        .map(([key, value]) => key);
+    } 
+
     setRoundSettings(settings, callback){
         this.roundSettings = settings;
+        this.typesSelected = this.generateTypesSelected();
         if (callback){
             callback();
         }
     }
     getRoundSettings(){
         return this.roundSettings;
+    }
+    setTypesSelected(types){
+        this.typesSelected = types;
     }
     addPlayer(id, name){
         this.players[id] = new Player(id, name);
@@ -31,24 +43,33 @@ class Room {
     getAllPlayers(){
         return this.players;
     }
-    async newQuestion(sharps, notes, intervals, scales, chords){
-        const noteQuestion = await NoteQuestion.init(sharps, notes, intervals, scales, chords);
-        
-        const note = noteQuestion.getNote();
-        const tone = noteQuestion.getTone();
-        const possibleAnswers = noteQuestion.getPossibleAnswers();
-        const correctAnswer = noteQuestion.getCorrectAnswer();
-        const questionType = noteQuestion.getQuestionType();
-
-        this.question = new NoteQuestion({
+    async newQuestion() {
+        this.currentIndex = (this.roundCount - 1) % this.typesSelected.length;
+        if (this.currentIndex < this.typesSelected.length) {
+          const type = this.typesSelected[this.currentIndex];
+          const noteQuestion = await NoteQuestion.init(type);
+    
+          const note = noteQuestion.getNote();
+          const tone = noteQuestion.getTone();
+          const possibleAnswers = noteQuestion.getPossibleAnswers();
+          const correctAnswer = noteQuestion.getCorrectAnswer();
+          const questionType = noteQuestion.getQuestionType();
+    
+          this.question = new NoteQuestion({
             note,
             tone,
             possibleAnswers,
             correctAnswer,
             questionType,
-        })
-        console.log(this.question); // works
-        return Promise.resolve();
+          });
+    
+          console.log(this.question); // works
+          this.currentIndex++;
+          return Promise.resolve();
+        } else {
+          console.log("All types processed");
+          return Promise.resolve(); // or reject with an error, depending on your needs
+        }
     }
     getNote(){
         return this.question.getNote();
@@ -96,7 +117,7 @@ class Room {
         for (let player in this.players){
             this.players[player].resetScore();
         }
-        this.roundCount = 0;
+        this.roundCount = 1;
         this.questionCount = 0;
     }
     setTypes(types){

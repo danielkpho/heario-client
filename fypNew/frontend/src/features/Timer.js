@@ -41,14 +41,12 @@ export default function Timer(){
     
     return(
         <div>
-            <h2>
                 {isRoundOver && (
                     <p>Next round in {time} seconds</p>
                 )}
                 {!isRoundOver && (
-                    <p>Time remaining: {time}</p>
+                    <p>Time left: {time}</p>
                 )}
-            </h2>
         </div>
     )   
 }

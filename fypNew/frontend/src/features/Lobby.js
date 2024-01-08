@@ -30,6 +30,20 @@ export default function Lobby(){
         };
     }, [id]);
 
+    useEffect(() => {
+        const handleBeforeUnload = (event) => {
+          const message = "Are you sure you want to leave? Your unsaved changes may be lost.";
+          event.returnValue = message; // Standard for most browsers
+          return message; // For some older browsers
+        };
+    
+        window.addEventListener('beforeunload', handleBeforeUnload);
+    
+        return () => {
+          window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+      }, []);
+
 
     useEffect(() => {
         socket.on("allPlayers", (players) => {
@@ -72,7 +86,6 @@ export default function Lobby(){
     });
 
     useEffect(() => {
-        console.log("hostLeft")
         socket.on('hostLeft', () => {
             // Show alert
             alert('The host has left the lobby. Redirecting to the home page.');
@@ -94,7 +107,7 @@ export default function Lobby(){
                 alignItems="center"
                 justifyContent="space-around"
                 padding={2}
-                bgcolor={"#ede6e2"}
+                bgcolor="primary.main"
             >
                 <Grid item>
                     <Typography variant="h4">
