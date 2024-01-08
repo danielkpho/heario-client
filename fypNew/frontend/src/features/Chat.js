@@ -1,16 +1,13 @@
 import React from "react"
 import { socket } from "../api/socket";
-import { useDispatch } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 
 import { TextField, Paper, Typography, Button } from "@mui/material";
 import SendIcon from '@mui/icons-material/Send';
 
 export default function Chat(){
-    const { id } = useParams();
-    const dispatch = useDispatch();
-
+    const id = useSelector(state => state.game.id);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
 

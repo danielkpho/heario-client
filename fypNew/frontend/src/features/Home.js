@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { socket } from "../api/socket";
 import { nanoid } from "nanoid";
 
-import { setId } from "../features/gameSlice";
+import { setHostId, setId, setJoinedLobby } from "../features/gameSlice";
 
 import { Button, Grid, FormControl, InputLabel, Input, Alert, Snackbar } from "@mui/material";
+
+import Lobby from "./Lobby";
 
 export default function Home(){
     const [roomId, setRoomId] = useState('');
@@ -16,6 +18,8 @@ export default function Home(){
     const dispatch = useDispatch();
     const [SnackbarOpen, setSnackbarOpen] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
+    const joinedLobby = useSelector(state => state.game.joinedLobby);
+    
     
     useEffect(() => {
         socket.emit("getRooms");
@@ -31,8 +35,10 @@ export default function Home(){
         const roomId = nanoid(4);
             if (name) {
                 socket.emit("createRoom", { id: roomId, roundSettings: {rounds: 3, time: 10, notes: true, sharps: false, intervals: false, scales: false, chords: false}, name })
-                navigate("/lobby/" + roomId);
+                // navigate("/lobby/" + roomId);
                 dispatch(setId(roomId));
+                dispatch(setHostId(socket.id));
+                dispatch(setJoinedLobby(true));
             } 
             else {
                 setAlertMessage("Please enter a name");
@@ -61,8 +67,8 @@ export default function Home(){
     function joinGame(){
         if (isRoomJoinable(roomId) && name) {
                 socket.emit("joinRoom", { id: roomId, name });
-                navigate("/lobby/" + roomId);
                 dispatch(setId(roomId));
+                dispatch(setJoinedLobby(true));
         }
         if (!name) {
             setAlertMessage("Please enter a name");
@@ -83,6 +89,7 @@ export default function Home(){
     }
 
     return (
+        (!joinedLobby) ? (
         <Grid
             container
             direction="column"
@@ -172,5 +179,8 @@ export default function Home(){
                     </Grid>
                 </Grid> */}
         </Grid>
+        ) : (
+            <Lobby />
+        )
     );
 }

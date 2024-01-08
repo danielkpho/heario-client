@@ -1,8 +1,7 @@
 import React , {useState, useEffect} from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import { socket } from "../api/socket";
 import { useSelector, useDispatch } from "react-redux";
-import { setHostId, setIsStarted, updateRoundSettings, setIsRoundOver, setStatus, selectTimer } from "./gameSlice";
+import { resetState, setHostId, setIsStarted, updateRoundSettings, setIsRoundOver, setStatus, selectTimer, setJoinedLobby } from "./gameSlice";
 
 import { FormControlLabel, Checkbox, Grid, Button, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 
@@ -18,8 +17,7 @@ export default function Settings(){
     }); 
     const hostId = useSelector(state => state.game.hostId);
     const dispatch = useDispatch();
-    const roomId = useParams();
-    const navigate = useNavigate();
+    const roomId = useSelector(state => state.game.id);
     const duration = useSelector(selectTimer);
 
     useEffect(() => {
@@ -80,18 +78,18 @@ export default function Settings(){
     
     function handleLeave(){
         if (socket.id === hostId){
-            socket.emit("deleteLobby", { roomId: roomId.id });
+            socket.emit("deleteLobby", { roomId: roomId });
+            
         } else {
-            socket.emit("leaveRoom", { roomId: roomId.id });
+            socket.emit("leaveRoom", { roomId: roomId });
         }
-        navigate("/");
-        dispatch(setStatus("idle"));
+        dispatch(resetState());
     }
 
     function handleSubmit(event){
         event.preventDefault();
-        socket.emit("startGame", { roomId: roomId.id, roundSettings });
-        socket.emit("startTimer", { roomId: roomId.id, duration })
+        socket.emit("startGame", { roomId: roomId , roundSettings });
+        socket.emit("startTimer", { roomId: roomId , duration })
         dispatch(setIsStarted(true));
         dispatch(setIsRoundOver(false));
         dispatch(setStatus("playing"));

@@ -142,7 +142,7 @@ io.on('connection', socket => {
         }
     });
 
-    socket.on("getQuestion", async ({ roomId }) => { // player requests question
+    socket.on("getQuestion", async (roomId) => { // player requests question
         const room = rooms[roomId];
         if (room) {
             await room.newQuestion();
@@ -266,6 +266,9 @@ io.on('connection', socket => {
                 const remainingTime = Math.max(0, endTime - currentTime);
                 io.to(roomId).emit("timer-update", Math.round(remainingTime/1000));
 
+                console.log(remainingTime);
+
+
                 if (remainingTime <= 0) {
                     clearInterval(timer);
                     io.to(roomId).emit("timer-end");
@@ -274,7 +277,7 @@ io.on('connection', socket => {
         }
     });
 
-    socket.on("round-over", ({ roomId }) => { // player ends round
+    socket.on("round-over", roomId => { // player ends round
         const room = rooms[roomId];
         if (room) {
             const endTime = Date.now() + 5 * 1000;
@@ -285,6 +288,8 @@ io.on('connection', socket => {
                 const remainingTime = Math.max(0, endTime - currentTime);
 
                 io.to(roomId).emit("timer-update", Math.round(remainingTime/1000));
+
+                console.log(remainingTime);
 
                 if (remainingTime <= 0) { // have to fix sending multiple times
                     console.log("nextround emitted")

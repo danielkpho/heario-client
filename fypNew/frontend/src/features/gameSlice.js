@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
+    joinedLobby: false,
     hostId: null,
     id: null,
     error: null,
@@ -27,6 +28,9 @@ export const gameSlice = createSlice({
     name: 'game',
     initialState,
     reducers: {
+        setJoinedLobby: (state, action) => {
+            state.joinedLobby = action.payload;
+        },
         setHostId: (state, action) => {
             state.hostId = action.payload;
         },
@@ -74,11 +78,35 @@ export const gameSlice = createSlice({
             setIsGameOver(false);
             setIsStarted(false);
             setStatus('idle');
-        },   
+        },
+        resetState: (state) => {
+            state.joinedLobby = false;
+            state.hostId = null;
+            state.id = null;
+            state.error = null;
+            state.status = 'idle';
+            state.players = [];
+            state.roundSettings = {
+                rounds: 3,
+                time: 10,
+                sharps: false,
+                notes: true,
+                intervals: true,
+                scales: true,
+                chords: true,
+            };
+            state.roundCount = 1;
+            state.questionCount = 1;
+            state.isRoundOver = false;
+            state.isGameOver = false;
+            state.isStarted = false;
+            state.scores = [];
+        },
     }
 });
 
 export const {
+    setJoinedLobby,
     setHostId,
     setId,
     incrementRound,
@@ -93,6 +121,7 @@ export const {
     updateRoundSettings,
     allPlayers,
     resetGame,
+    resetState,
 } = gameSlice.actions;
 
 export const roundCount = (state) => state.game.roundCount;

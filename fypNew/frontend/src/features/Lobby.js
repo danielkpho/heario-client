@@ -1,9 +1,7 @@
 import React , { useEffect }  from "react";
-import { useParams } from "react-router-dom";
 import { socket } from "../api/socket";
 import Settings from "./Settings";
 import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
 
 import { allPlayers, setIsStarted, setIsGameOver } from "../features/gameSlice";
 
@@ -15,24 +13,16 @@ import { Stack } from "@mui/material";
 
 
 export default function Lobby(){
-    const { id } = useParams();
+    const id = useSelector(state => state.game.id);
     const dispatch = useDispatch();
     const players = useSelector(state => state.game.players);
     const isStarted = useSelector(state => state.game.isStarted);
-    const navigate = useNavigate();
     const roundCount = useSelector(state => state.game.roundCount);
     const status = useSelector(state => state.game.status);
-    
-    useEffect(() => { // TODO
-        window.onbeforeunload = () => {
-            socket.emit("leaveRoom", { roomId: id });
-            navigate("/");
-        };
-    }, [id]);
 
     useEffect(() => {
         const handleBeforeUnload = (event) => {
-          const message = "Are you sure you want to leave? Your unsaved changes may be lost.";
+          const message = "Are you sure you want to leave? You will be redirected to the home page.";
           event.returnValue = message; // Standard for most browsers
           return message; // For some older browsers
         };
@@ -90,7 +80,6 @@ export default function Lobby(){
             // Show alert
             alert('The host has left the lobby. Redirecting to the home page.');
             // Redirect to the home page (adjust the route accordingly)
-            navigate('/');
         });    
         // Clean up the event listener when the component unmounts
         return () => {

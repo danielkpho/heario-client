@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import Grid from "@mui/material/Grid";
-import { useParams } from "react-router-dom";
 
 import { Button } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
@@ -9,12 +8,10 @@ import { incrementTries } from "./statSlice";
 import { socket } from "../api/socket";
 
 function TonesAnswerButton(){
-    const { id } = useParams();
+    const id = useSelector(state => state.game.id);
     const [clickedButtons, setClickedButtons] = useState([]);
     const [attempts, setAttempts] = useState(0);
-    const [score, setScore] = useState(0);
     const dispatch = useDispatch();
-    const [lastAnswer, setLastAnswer] = useState(-1);
 
     const handleButtonClick = (note) => {
         setClickedButtons((prevClickedButtons) => [...prevClickedButtons, note]);
@@ -50,8 +47,6 @@ function TonesAnswerButton(){
     function handleGameAnswer(note){
         dispatch(incrementTries(correctAnswer));
         if (note === correctAnswer){
-            setScore(answers.length - attempts);
-            setLastAnswer(1);
             socket.emit("setScore", {
                 roomId: id,
                 userId: socket.id,
@@ -61,15 +56,13 @@ function TonesAnswerButton(){
 
             } else {
             setAttempts(attempts + 1);
-            setLastAnswer(0);
+
         }
     }
 
     function reset(){
         setClickedButtons([]);
         setAttempts(0);
-        setScore(0);
-        setLastAnswer(-1);
     }
 
     useEffect(() => {

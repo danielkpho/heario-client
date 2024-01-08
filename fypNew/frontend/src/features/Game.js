@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { socket } from "../api/socket";
-import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
 import { instrument as soundfontInstrument } from "soundfont-player";
 
-import { setIsStarted, setScores, incrementRound, incrementQuestion, resetGame, setIsRoundOver, setIsGameOver, selectTimer, setStatus } from "./gameSlice";
+import { resetState, setScores, incrementRound, incrementQuestion, resetGame, setIsRoundOver, setIsGameOver, selectTimer, setStatus } from "./gameSlice";
 import { newQuestion, resetStats } from "./statSlice.js"
 import { setAnswers, setQuestionType, setTone, setCorrectAnswer, correctAns, currentTone } from "./questionsSlice";
 
@@ -22,7 +21,7 @@ import Axios from "axios";
 
 
 export default function Game(){
-    const { id } = useParams();
+    const id = useSelector(state => state.game.id);
     const dispatch = useDispatch();
     const hostId = useSelector(state => state.game.hostId);
     const isHost = socket.id === hostId;
@@ -34,15 +33,8 @@ export default function Game(){
     const roundCount = useSelector(state => state.game.roundCount);
     const correctAnswer = useSelector(correctAns);
     const isGameOver = useSelector(state => state.game.isGameOver);
-    const isSharps = useSelector(state => state.game.roundSettings.sharps);
-    const isNotes = useSelector(state => state.game.roundSettings.notes);
-    const isIntervals = useSelector(state => state.game.roundSettings.intervals);
-    const isScales = useSelector(state => state.game.roundSettings.scales);
-    const isChords = useSelector(state => state.game.roundSettings.chords);
     const questionType = useSelector(state => state.questions.questionType);
     const tone = useSelector(currentTone);
-    const navigate = useNavigate();
-
     const [showBackdrop, setShowBackdrop] = useState(false);
 
     let somePiano;
@@ -66,7 +58,8 @@ export default function Game(){
     useEffect(() => {
         if(isPianoReady){
             if (socket.id === hostId){ // emit the question to the server if the user is the host
-                socket.emit("getQuestion", { roomId: id });
+                console.log("emitted get question");
+                socket.emit("getQuestion", id);
             };
             return () => {
                 socket.off("gameStarted");
@@ -87,7 +80,6 @@ export default function Game(){
                 dispatch(setTone(tone));
                 console.log("question: " + tone);
                 handlePlayNote(tone);
-                console.log("tried playing note " + tone);
             });
             // socket.emit("getAnswers", { roomId: id });
             socket.on("answers", (answers) => {
@@ -137,6 +129,7 @@ export default function Game(){
         socket.emit("resetGame", { roomId: id });
         dispatch(resetGame());
         dispatch(resetStats());
+        dispatch(setStatus("idle"));
     };
 
 
@@ -148,7 +141,7 @@ export default function Game(){
         socket.on("nextRound", () => {
             console.log("roundCount: " + roundCount);
             if(roundCount < roundSettings.rounds){
-                socket.emit("getQuestion", { roomId: id, sharps: isSharps, notes: isNotes, intervals: isIntervals, scales: isScales, chords: isChords });
+                socket.emit("getQuestion", id);
                 socket.emit("startTimer", { roomId: id, duration })
                 dispatch(incrementRound());
                 dispatch(incrementQuestion());
@@ -181,12 +174,8 @@ export default function Game(){
 
     function handleLeave(){
         socket.emit("leaveRoom", { roomId: id });
-        dispatch(setIsStarted(false));
-        dispatch(setIsGameOver(false));
-        dispatch(resetGame());
-        dispatch(resetStats());
-        dispatch(setStatus("idle"));
-        navigate("/");
+        dispatch(resetState());
+        dispatch(resetStats())
     }
 
     
