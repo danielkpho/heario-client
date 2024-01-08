@@ -3,7 +3,7 @@ import { socket } from "../api/socket";
 import { useSelector, useDispatch } from "react-redux";
 import { resetState, setHostId, setIsStarted, updateRoundSettings, setIsRoundOver, setStatus, selectTimer, setJoinedLobby } from "./gameSlice";
 
-import { FormControlLabel, Checkbox, Grid, Button, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
+import { Alert, FormControlLabel, Checkbox, Grid, Button, Select, MenuItem, InputLabel, FormControl, Snackbar } from '@mui/material';
 
 export default function Settings(){
     const [roundSettings, setRoundSettings] = useState({
@@ -19,6 +19,7 @@ export default function Settings(){
     const dispatch = useDispatch();
     const roomId = useSelector(state => state.game.id);
     const duration = useSelector(selectTimer);
+    const [SnackbarOpen, setSnackbarOpen] = useState(false);
 
     useEffect(() => {
         socket.emit("getHostId", { roomId: roomId.id });
@@ -73,9 +74,15 @@ export default function Settings(){
     
                 return updatedSettings;
             });
+        } else {
+            setSnackbarOpen(true);
         }
     };
-    
+
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
+      };
+
     function handleLeave(){
         if (socket.id === hostId){
             socket.emit("deleteLobby", { roomId: roomId });
@@ -87,17 +94,29 @@ export default function Settings(){
     }
 
     function handleSubmit(event){
-        event.preventDefault();
-        socket.emit("startGame", { roomId: roomId , roundSettings });
-        socket.emit("startTimer", { roomId: roomId , duration })
-        dispatch(setIsStarted(true));
-        dispatch(setIsRoundOver(false));
-        dispatch(setStatus("playing"));
+        if (socket.id === hostId) {
+            event.preventDefault();
+            socket.emit("startGame", { roomId: roomId , roundSettings });
+            socket.emit("startTimer", { roomId: roomId , duration })
+            dispatch(setIsStarted(true));
+            dispatch(setIsRoundOver(false));
+            dispatch(setStatus("playing"));
+        }
     }
 
     return (
         <div>
-            <p>Only the host can change settings</p>
+            <Grid
+                        container
+                        justifyContent={"center"}
+                        alignItems={"center"}
+                    >
+                        <Grid fullWidth justifyContent={"center"} >
+                            <Grid item xs={12}>
+                                <h2>Settings</h2>
+                            </Grid>
+                        </Grid>
+                    </Grid>
             <form onSubmit={handleSubmit}>
                 <Grid container spacing={2} alignItems="center" justifyContent={"space-between"}>
                     <Grid xs={6} item justifyContent={"center"}>
@@ -213,6 +232,11 @@ export default function Settings(){
                         </Button>
                     </Grid>
                 </Grid>
+                <Snackbar open={SnackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+                    <Alert severity="error" onClose={handleSnackbarClose}>
+                    Only the host can change settings
+                    </Alert>
+                </Snackbar>
     </form>
         </div>
     );

@@ -3,7 +3,8 @@ import { socket } from "../api/socket";
 import Settings from "./Settings";
 import { useSelector, useDispatch } from "react-redux";
 
-import { allPlayers, setIsStarted, setIsGameOver } from "../features/gameSlice";
+import { allPlayers, setIsStarted, resetGame, resetState } from "../features/gameSlice";
+import { resetStats } from "../features/statSlice";
 
 import Game from "./Game";
 import Chat from "./Chat";
@@ -56,9 +57,8 @@ export default function Lobby(){
     
     useEffect(() => {
         socket.on("gameReset", () => {
-            dispatch(setIsStarted(false));
-            dispatch(setIsGameOver(false));
-            console.log("gameReset")
+            dispatch(resetStats());
+            dispatch(resetGame());
         });
         return () => {
             socket.off("gameReset");
@@ -79,6 +79,7 @@ export default function Lobby(){
         socket.on('hostLeft', () => {
             // Show alert
             alert('The host has left the lobby. Redirecting to the home page.');
+            dispatch(resetState());
             // Redirect to the home page (adjust the route accordingly)
         });    
         // Clean up the event listener when the component unmounts

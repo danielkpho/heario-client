@@ -35,7 +35,6 @@ export default function Home(){
         const roomId = nanoid(4);
             if (name) {
                 socket.emit("createRoom", { id: roomId, roundSettings: {rounds: 3, time: 10, notes: true, sharps: false, intervals: false, scales: false, chords: false}, name })
-                // navigate("/lobby/" + roomId);
                 dispatch(setId(roomId));
                 dispatch(setHostId(socket.id));
                 dispatch(setJoinedLobby(true));

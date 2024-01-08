@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { instrument as soundfontInstrument } from "soundfont-player";
 
-import { resetState, setScores, incrementRound, incrementQuestion, resetGame, setIsRoundOver, setIsGameOver, selectTimer, setStatus } from "./gameSlice";
+import { setIsStarted, resetState, setScores, incrementRound, incrementQuestion, resetGame, setIsRoundOver, setIsGameOver, selectTimer, setStatus } from "./gameSlice";
 import { newQuestion, resetStats } from "./statSlice.js"
 import { setAnswers, setQuestionType, setTone, setCorrectAnswer, correctAns, currentTone } from "./questionsSlice";
 
@@ -44,7 +44,7 @@ export default function Game(){
           .then((acoustic_grand_piano) => {
             somePiano = acoustic_grand_piano;
             setPiano(acoustic_grand_piano);
-            console.log("piano set from game");
+            console.log("piano is ready");
             setIsPianoReady(true);
           });
     
@@ -78,7 +78,7 @@ export default function Game(){
             // socket.emit("getTone", { roomId: id });
             socket.on("tone", (tone) => {
                 dispatch(setTone(tone));
-                console.log("question: " + tone);
+                console.log("received tone: "+ tone);
                 handlePlayNote(tone);
             });
             // socket.emit("getAnswers", { roomId: id });
@@ -129,7 +129,6 @@ export default function Game(){
         socket.emit("resetGame", { roomId: id });
         dispatch(resetGame());
         dispatch(resetStats());
-        dispatch(setStatus("idle"));
     };
 
 

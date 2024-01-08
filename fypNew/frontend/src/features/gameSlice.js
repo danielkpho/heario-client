@@ -72,12 +72,13 @@ export const gameSlice = createSlice({
             console.log(state.players);
         },
         resetGame: (state) => {
+            console.log("resetGame redux store called");
             state.roundCount = 1;
             state.questionCount = 1;
-            setIsRoundOver(false);
-            setIsGameOver(false);
-            setIsStarted(false);
-            setStatus('idle');
+            state.isGameOver = false;
+            state.isStarted = false;
+            state.isRoundOver = false;
+            state.status = 'idle';
         },
         resetState: (state) => {
             state.joinedLobby = false;

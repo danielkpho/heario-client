@@ -217,7 +217,7 @@ io.on('connection', socket => {
             room.started = false;
             console.log(room);
             io.to(roomId).emit("allPlayers", room.getAllPlayers());
-            io.to(roomId).emit("gameReset");
+            socket.broadcast.to(roomId).emit("gameReset");
             io.to(roomId).emit("message", { name: "Console", message: "Game reset!" });
         }
     });
