@@ -53,8 +53,6 @@ export default function Game(){
         };
       }, []);
 
-
-
     useEffect(() => {
         if(isPianoReady){
             if (socket.id === hostId){ // emit the question to the server if the user is the host
@@ -176,6 +174,10 @@ export default function Game(){
         dispatch(resetState());
         dispatch(resetStats())
     }
+
+    useEffect(() => {
+            
+    }, []);
 
     
 

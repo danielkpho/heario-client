@@ -98,9 +98,6 @@ export default function Settings(){
             event.preventDefault();
             socket.emit("startGame", { roomId: roomId , roundSettings });
             socket.emit("startTimer", { roomId: roomId , duration })
-            dispatch(setIsStarted(true));
-            dispatch(setIsRoundOver(false));
-            dispatch(setStatus("playing"));
         }
     }
 

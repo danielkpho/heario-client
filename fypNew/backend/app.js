@@ -1,8 +1,16 @@
 const Room = require('./Room.js');
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const socketio = require('socket.io');
 const cors = require('cors');
 const PORT = 8000; // port to run server on
+// require('dotenv').config();
+// const secretKey = process.env.HEARIO_SECRET_KEY;
+
+// console.log(secretKey);
+// const crypto = require('crypto');
+
+
 
 const app = express();
 const expressServer = app.listen(PORT, () => // start server on port 8080
@@ -21,45 +29,296 @@ const io = socketio(expressServer, {
 
 const rooms = {};
 
-var mysql = require('mysql');
+// var mysql = require('mysql');
 
-var con = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "password",
-    database: "heariodb"
+// var db = mysql.createConnection({
+//     host: "localhost",
+//     user: "root",
+//     password: "password",
+//     database: "heariodb"
+// });
+
+// db.connect(function(err) {
+//     if (err) throw err;
+//     console.log("Connected!");
+// });
+
+// app.post('/register', function(req, res) {
+//     const username = req.body.username;
+//     const password = req.body.password;
+//     console.log(username, password);
+
+//     db.query("INSERT INTO users (username, password) VALUES (?, ?)", [username, password], (err, result) => { console.log(err);})
+//     console.log("User registered");
+// });
+
+// app.post('/login', function(req, res) {
+//     const username = req.body.username;
+//     const password = req.body.password;
+
+//     db.query("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, result) => {
+//         if (err){
+//             res.send({ err: err });
+//             console.log(err);
+//         } 
+//         if (result.length > 0) {
+//             res.send(result);
+//         } else {
+//             res.send({ message: "Wrong username/password combination!" })
+//         }    
+//     })
+// });
+
+const sqlite3 = require('sqlite3').verbose();
+
+const db = new sqlite3.Database('./heariodb.db', (err) => {
+    if (err) {
+        console.error(err.message);
+    }
+    console.log('Connected to the heariodb database.');
 });
 
-con.connect(function(err) {
-    if (err) throw err;
-    console.log("Connected!");
-});
+db.run('CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, password TEXT NOT NULL)');
+db.run('CREATE TABLE IF NOT EXISTS games_played (user_id INT PRIMARY KEY, total_games_played INT, games_won INT, FOREIGN KEY (user_id) REFERENCES users(user_id))');
+db.run('CREATE TABLE IF NOT EXISTS user_tokens (user_id INT PRIMARY KEY, token TEXT, FOREIGN KEY (user_id) REFERENCES users(user_id))');
+db.run('CREATE TABLE IF NOT EXISTS user_attempts (user_id INTEGER,question_type VARCHAR(50),question VARCHAR(50), correct_attempts FLOAT, total_attempts FLOAT, PRIMARY KEY (user_id, question_type, question), FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE)');
+
 
 app.post('/register', function(req, res) {
     const username = req.body.username;
     const password = req.body.password;
-    console.log(username, password);
 
-    con.query("INSERT INTO users (username, password) VALUES (?, ?)", [username, password], (err, result) => { console.log(err);})
-    console.log("User registered");
+    // Check if the user already exists
+    db.get("SELECT * FROM users WHERE username = ?", [username], (err, existingUser) => {
+        if (err) {
+            res.status(500).send({ err: err });
+            console.log(err);
+        } else if (existingUser) {
+            res.status(200).send({ message: "User already exists!" });
+            console.log("User already exists");
+        } else {
+            // If the user doesn't exist, insert the new user
+            db.run("INSERT INTO users (username, password) VALUES (?, ?)", [username, password], (err, result) => {
+                if (err) {
+                    res.status(500).send({ err: err });
+                    console.log(err);
+                } else {
+                    // User successfully added to the database
+                    const token = generateToken(username, 3600);
+
+                    res.status(200).send({ message: "User added to database", username, token });
+                    console.log("User added to database");
+                }
+            });
+            // db.run("INSERT INTO games_played (user_id, total_games_played, games_won) VALUES ((SELECT user_id FROM users WHERE username = ?), 0, 0)", [username], (err, result) => {
+            //     if (err) {
+            //         res.status(500).send({ err: err });
+            //         console.log(err);
+            //     } else {
+            //         // User successfully added to the database
+            //         res.send({ message: "User games database init" });
+            //         console.log("User games database init");
+            //     }
+            // });
+        }
+    });
 });
+
 
 app.post('/login', function(req, res) {
     const username = req.body.username;
     const password = req.body.password;
 
-    con.query("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, result) => {
-        if (err){
+    db.all("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, result) => {
+        if (err) {
             res.send({ err: err });
             console.log(err);
-        } 
+            return;
+        }
+    
         if (result.length > 0) {
-            res.send(result);
+            const user_id = result[0].user_id;
+    
+            // Check if there is an existing token for the user
+            db.get("SELECT token FROM user_tokens WHERE user_id = ?", [user_id], (err, existingToken) => {
+                if (err) {
+                    res.send({ err: err });
+                    console.log(err);
+                    return;
+                }
+    
+                // Generate a new token or update the existing one
+                const token = existingToken ? existingToken.token : generateToken(username, 3600);
+    
+                // Insert or update the token in the database
+                const sql = existingToken
+                    ? "UPDATE user_tokens SET token = ? WHERE user_id = ?"
+                    : "INSERT INTO user_tokens (user_id, token) VALUES (?, ?)";
+    
+                db.run(sql, [token, user_id], (err) => {
+                    if (err) {
+                        res.send({ err: err });
+                        console.log(err);
+                    } else {
+                        console.log("User logged in");
+                        console.log("Token added or updated in the database");
+                        res.send({ username, token });
+                    }
+                });
+            });
         } else {
-            res.send({ message: "Wrong username/password combination!" })
-        }    
-    })
+            res.send({ message: "Wrong username/password combination!" });
+        }
+    });
+    
 });
+// app.post('/incrementGamesPlayed', verifyToken, function(req, res) {
+app.post('/incrementGamesPlayed', function(req, res) {
+    const username = req.body.username;
+
+    // Using INSERT OR REPLACE to either update or insert a new row
+    db.run(`
+    INSERT INTO games_played (user_id, total_games_played, games_won)
+    VALUES (
+        (SELECT user_id FROM users WHERE username = ?),
+        1,
+        0
+    )
+    ON CONFLICT (user_id) DO UPDATE SET
+        total_games_played = total_games_played + 1
+        ;
+    `, [username], (err) => {
+        if (err){
+            res.status(500).send({ err: err.message });
+            console.log(err);
+        } else {
+            console.log("Games played incremented");
+            res.send({ message: "Games played incremented" });
+        }
+    });
+});
+
+app.post("/incrementGamesWon", function(req, res) {
+    const username = req.body.username;
+
+    // Using INSERT OR REPLACE to either update or insert a new row
+    db.run(`
+    INSERT INTO games_played (user_id, total_games_played, games_won)
+    VALUES (
+        (SELECT user_id FROM users WHERE username = ?),
+        0,
+        1
+    )
+    ON CONFLICT (user_id) DO UPDATE SET
+        games_won = games_won + 1
+        ;
+    `, [username], (err) => {
+        if (err){
+            res.status(500).send({ err: err.message });
+            console.log(err);
+        } else {
+            console.log("Games won incremented");
+            res.send({ message: "Games won incremented" });
+        }
+    });
+});
+
+app.post('/getGamesPlayed', function(req, res) {
+    const username = req.body.username;
+    db.all("SELECT total_games_played, games_won FROM games_played WHERE user_id = (SELECT user_id FROM users WHERE username = ?)", [username], (err, result) => {
+        if (err){
+            res.status(500).send({ err: err.message });
+            console.log(err);
+        } else {
+            const gamesPlayed = result[0].total_games_played;
+            const gamesWon = result[0].games_won;
+            res.send({ gamesPlayed, gamesWon });
+        }
+    });
+});
+
+app.post('/updateAttempts', function(req, res) {
+    const username = req.body.username;
+    const questionType = req.body.questionType;
+    const question = req.body.question;
+    const correctAttempts = req.body.correctAttempts;
+    const totalAttempts = req.body.totalAttempts;
+
+    // Using INSERT OR REPLACE to either update or insert a new row
+    db.run(`
+    INSERT INTO user_attempts (user_id, question_type, question, correct_attempts, total_attempts)
+    VALUES (
+        (SELECT user_id FROM users WHERE username = ?),
+        ?,
+        ?,
+        ?,
+        ?
+    )
+    ON CONFLICT (user_id, question_type, question) DO UPDATE SET
+        correct_attempts = user_attempts.correct_attempts + EXCLUDED.correct_attempts,
+        total_attempts = user_attempts.total_attempts + EXCLUDED.total_attempts
+    ;
+    `, [username, questionType, question, correctAttempts, totalAttempts], (err) => {
+        if (err){
+            res.status(500).send({ err: err.message });
+            console.log(err);
+        } else {
+            console.log("Attempts updated");
+            res.send({ message: "Attempts updated" });
+        }
+    });
+});
+
+function generateToken(username, expirationInSeconds) { // token that contains username and expiration time
+    const payload = {
+        username,
+        exp: Math.floor(Date.now() / 1000) + expirationInSeconds,
+    };
+
+    return jwt.sign(payload, null, { algorithm: 'none' });
+}
+
+function verifyToken(req, res, next) {
+    const token = req.headers.authorization;
+    
+    if (!token) {
+        res.status(401).send({ message: "No token provided" });
+        return;
+    }
+
+    jwt.verify(token, null, { algorithms: ['none'] }, (err, payload) => {
+        if (err) {
+            res.status(401).send({ message: "Invalid token" });
+            console.log(err);
+            console.log(token)
+            return;
+        }
+
+        req.username = payload.username;
+        next();
+    });
+}
+
+app.post('/getAttempts', function (req,res) { 
+    const username = req.body.username;
+    db.all("SELECT question_type, question, correct_attempts, total_attempts FROM user_attempts WHERE user_id = (SELECT user_id FROM users WHERE username = ?)", [username], (err, result) => {
+        if (err){
+            res.status(500).send({ err: err.message });
+            console.log(err);
+        } else {
+            res.send({ result });
+        }
+    });
+}
+);
+
+
+
+
+
+
+
+
 
 
 io.on('connection', socket => { 

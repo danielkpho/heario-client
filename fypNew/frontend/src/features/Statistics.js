@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 
 import { allQuestions, allTries, allAccuracy } from "../features/statSlice";
 
+
 export default function Statistics(){
     const questions = useSelector(allQuestions);
     const tries = useSelector(allTries);

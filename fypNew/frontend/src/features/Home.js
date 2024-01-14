@@ -20,14 +20,29 @@ export default function Home(){
     const [alertMessage, setAlertMessage] = useState('');
     const joinedLobby = useSelector(state => state.game.joinedLobby);
     
+    const username = localStorage.getItem("username");
+
+    useEffect(() => {
+        if (username) {
+            setName(username);
+        }
+    }
+    , []);
     
     useEffect(() => {
         socket.emit("getRooms");
     }, []);
 
-    socket.on("rooms", (rooms) => {
-        setRooms(rooms);
-    });
+    useEffect(() => {
+        socket.on("rooms", (rooms) => {
+          setRooms(rooms);
+        });
+      
+        return () => {
+          // Cleanup logic if needed
+          socket.off("rooms");
+        };
+      }, []);
 
     
 
@@ -87,6 +102,16 @@ export default function Home(){
         navigate("/register");
     }
 
+    function profile(){
+        if (username) {
+            navigate("/profile");
+        } else {
+            navigate("/register");
+        }
+    }
+
+    console.log("Home rendered")
+    
     return (
         (!joinedLobby) ? (
         <Grid
@@ -95,9 +120,10 @@ export default function Home(){
             alignItems="center"
             justifyContent="center"
             marginTop={5}
+            padding={2}
+            spacing={2}
         >
-
-            <Grid item xs={8} justifyContent={"center"}>
+            <Grid item justifyContent={"center"}>
                 <FormControl>
                     <InputLabel style={{ color: 'grey' }}>Enter Your Name</InputLabel>
                         <Input  
@@ -105,28 +131,17 @@ export default function Home(){
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
+                            disabled={username}
                             inputProps={{ style: { color: 'grey' }, maxLength: 15}}
                         />
                 </FormControl>
             </Grid>
-            <Grid item xs={8}>
-                
-            </Grid>
-                <Grid
-                    container
-                    spacing={2}
-                    direction="column"
-                    alignItems="center"
-                    justifyContent="center"
-                    marginTop={2}
-                >
-                    <Grid item xs={8}>
+                    <Grid item>
                         <Button type="submit" variant="contained" color="primary" onClick={createGame} style={{ width: 200 }}>
                             Create Game
                         </Button>
                     </Grid>
-                    <br></br>
-                    <Grid item xs={8}>
+                    <Grid item>
                         <FormControl>
                             <InputLabel style={{ color: 'grey' }}>Enter Room ID</InputLabel>
                                 <Input  
@@ -137,19 +152,31 @@ export default function Home(){
                                 />
                         </FormControl>
                     </Grid>
-                    <Grid item xs={8}>
-                        <br></br>
+                    <Grid item>
                         <Button variant="contained" color="green" onClick={joinGame} style={{ width: 200 }}>
                             Join using code
                         </Button>
                     </Grid>
-                    <Grid item xs={8}>
-                        <br></br>
-                        <Button variant="contained" color="primary" onClick={register}>
-                            Register
-                        </Button>
+                    <Grid item>
+                        <Grid 
+                            container
+                            direction="row"
+                            justifyContent="center"
+                            alignItems="center"
+                            spacing={2}
+                        >
+                            <Grid item>
+                                <Button variant="contained" color="primary" onClick={register}>
+                                    Register
+                                </Button>
+                            </Grid>
+                            <Grid item>
+                                <Button variant="contained" color="primary" onClick={profile}>
+                                    Profile
+                                </Button>
+                            </Grid>
+                        </Grid>
                     </Grid>
-                </Grid>
                 <Snackbar open={SnackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
                     <Alert severity="error" onClose={handleSnackbarClose}>
                     {alertMessage}

@@ -4,16 +4,16 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Home from "./features/Home";
 import Lobby from "./features/Lobby";
 import Register from "./features/Register";
+import Profile from "./features/Profile";
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 import Grid from '@mui/material/Grid';
-import { CssBaseline, Typography, Backdrop } from "@mui/material";
+import { CssBaseline, Typography, Link } from "@mui/material";
 
 import "./Knewave.css"
 
 import { blue, green, red } from "@mui/material/colors";
-
 
 const theme = createTheme({
     palette: {
@@ -56,7 +56,8 @@ const theme = createTheme({
     // customBorderRadius: {
     //   borderRadius: "16px",
     // },
-  });
+});
+  
 
 function App() {
   return (
@@ -65,11 +66,14 @@ function App() {
     <div>
     <Grid
         justifyContent="center"
+        alignItems="center"
         marginTop={10}
       >
-      <Grid item xs={3} color='green.main'>
+      <Grid item color='green.main'>
         <Typography variant="h2" color="green" align="center">
-          HEAR.IO
+          <Link href="/" underline="none" color="inherit">
+            HEAR.IO
+          </Link>
         </Typography>
       </Grid>
     </Grid>
@@ -78,6 +82,7 @@ function App() {
           <Route path="/" exact element={ <Home/>} />
           <Route path="/lobby/:id" exact element={ <Lobby/>} />
           <Route path="/register" exact element={ <Register/>} />
+          <Route path ="/profile" exact element={<Profile/>} />
         </Routes>
       </BrowserRouter>
     </div>

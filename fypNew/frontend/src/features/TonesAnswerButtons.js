@@ -6,12 +6,14 @@ import { useSelector, useDispatch } from "react-redux";
 import { allAnswers, correctAns } from "./questionsSlice";
 import { incrementTries } from "./statSlice";
 import { socket } from "../api/socket";
+import Axios from "axios";
 
 function TonesAnswerButton(){
     const id = useSelector(state => state.game.id);
     const [clickedButtons, setClickedButtons] = useState([]);
     const [attempts, setAttempts] = useState(0);
     const dispatch = useDispatch();
+    const username = localStorage.getItem("username");
 
     const handleButtonClick = (note) => {
         setClickedButtons((prevClickedButtons) => [...prevClickedButtons, note]);
@@ -19,6 +21,7 @@ function TonesAnswerButton(){
     };
     const answers = useSelector(allAnswers);
     const correctAnswer = useSelector(correctAns);
+    const questionType = useSelector(state => state.questions.questionType);
 
     const answerButtons = answers.map((r, index) => (
         <Grid key = {index} item xs = {"6"}>
@@ -53,10 +56,11 @@ function TonesAnswerButton(){
                 score: answers.length - attempts,
             });
             setClickedButtons(answers);
-
-            } else {
+            if (username){
+                updateAttempts(1);
+            }
+        } else {
             setAttempts(attempts + 1);
-
         }
     }
 
@@ -70,6 +74,21 @@ function TonesAnswerButton(){
             reset();
         });
     });
+
+    function updateAttempts(correct){
+        Axios.post("http://localhost:8000/updateAttempts", {
+            username: username,
+            questionType: questionType,
+            question: correctAnswer,
+            correctAttempts: correct,
+            totalAttempts: attempts + 1,
+        }).then((response) => {
+            console.log(response);
+        }).catch((error) => {
+            console.log(error);
+        }
+        );
+    }
     
 
     return (

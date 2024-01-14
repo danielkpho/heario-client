@@ -3,7 +3,7 @@ import { socket } from "../api/socket";
 import Settings from "./Settings";
 import { useSelector, useDispatch } from "react-redux";
 
-import { allPlayers, setIsStarted, resetGame, resetState } from "../features/gameSlice";
+import { allPlayers, setIsStarted, resetGame, resetState, setStatus } from "../features/gameSlice";
 import { resetStats } from "../features/statSlice";
 
 import Game from "./Game";
@@ -11,6 +11,8 @@ import Chat from "./Chat";
 
 import { Grid, Paper, Typography } from "@mui/material";
 import { Stack } from "@mui/material";
+
+import Axios from "axios";
 
 
 export default function Lobby(){
@@ -48,22 +50,28 @@ export default function Lobby(){
     useEffect(() => {
         socket.on("gameStarted", () => {
             dispatch(setIsStarted(true));
+            dispatch(setStatus("playing"))
+            Axios.post("http://localhost:8000/incrementGamesPlayed", {
+                username: localStorage.getItem("username"),
+            } , {
+            }).then((response) => {
+                console.log(response);
+            }).catch((error) => {
+                console.log(error);
+            });
             console.log("gameStarted");
         });
-        return () => {
-            socket.off("gameStarted");
-        };
-    });
-    
-    useEffect(() => {
         socket.on("gameReset", () => {
             dispatch(resetStats());
             dispatch(resetGame());
         });
         return () => {
+            socket.off("gameStarted");
             socket.off("gameReset");
         };
     });
+    
+    
 
     useEffect(() => {
         socket.on("scores", (scores) => {
@@ -88,6 +96,8 @@ export default function Lobby(){
         };
     }, [socket]);
 
+    console.log("Lobby rendered");
+    console.log("isStarted:", isStarted);
         
     return (
         <div>
