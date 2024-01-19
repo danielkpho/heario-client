@@ -7,11 +7,13 @@ import Register from "./features/Register";
 import Profile from "./features/Profile";
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';  
 
 import Grid from '@mui/material/Grid';
 import { CssBaseline, Typography, Link } from "@mui/material";
 
 import "./Knewave.css"
+import Image from "./img/AudiosProfessionalX.png"
 
 import { blue, green, red } from "@mui/material/colors";
 
@@ -41,7 +43,7 @@ const theme = createTheme({
         },
       text: {
         primary: "#00000",
-        secondary : "#ede6e2",
+        secondary : "#00000", // cream
       }
     },
     typography: {     
@@ -57,10 +59,25 @@ const theme = createTheme({
     //   borderRadius: "16px",
     // },
 });
-  
+
+// const imageURL = Image;
+// const Background = styled("div")({
+//   position: "absolute",
+//   width: "100%",
+//   height: "100%",
+//   backgroundImage: `url(${imageURL})`,
+//   backgroundPosition: "center",
+//   backgroundSize: "cover",
+//   backgroundRepeat: "no-repeat",
+// });
+
 
 function App() {
   return (
+    <div>
+    <div>
+      {/* <Background/> */}
+    </div>
     <ThemeProvider theme={theme}>
       <CssBaseline>
     <div>
@@ -69,7 +86,7 @@ function App() {
         alignItems="center"
         marginTop={10}
       >
-      <Grid item color='green.main'>
+      <Grid item color='warning.main'>
         <Typography variant="h2" color="green" align="center">
           <Link href="/" underline="none" color="inherit">
             HEAR.IO
@@ -79,8 +96,7 @@ function App() {
     </Grid>
       <BrowserRouter>
         <Routes>
-          <Route path="/" exact element={ <Home/>} />
-          <Route path="/lobby/:id" exact element={ <Lobby/>} />
+        <Route path="/" exact element={<div><Home /></div>} />
           <Route path="/register" exact element={ <Register/>} />
           <Route path ="/profile" exact element={<Profile/>} />
         </Routes>
@@ -88,6 +104,7 @@ function App() {
     </div>
     </CssBaseline>
     </ThemeProvider>
+    </div>
   );
 }
 

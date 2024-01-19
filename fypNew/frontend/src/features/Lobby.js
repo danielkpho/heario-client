@@ -102,11 +102,19 @@ export default function Lobby(){
     return (
         <div>
             <Grid
+            container
+            direction="row"
+            justifyContent="center"
+            alignItems="center"
+            padding={4}
+            >
+            <Grid
                 container
                 direction="row"
                 alignItems="center"
                 justifyContent="space-around"
                 padding={2}
+                
                 bgcolor="primary.main"
             >
                 <Grid item>
@@ -125,12 +133,11 @@ export default function Lobby(){
                         </Typography>
                     </Grid>
             </Grid>
-            <div>
+            
                 <Grid
                     container
                     justifyContent="space-around"
                     alignItems={"flex-start"}
-                    padding={2}
                 >
                     <Grid item xs={3} padding={2}>                
                         <Stack spacing={2}>
@@ -165,7 +172,8 @@ export default function Lobby(){
                         </Grid>
                     </Grid>
                 </Grid>
-            </div>
+                </Grid>
+            
         </div>
     );
 }

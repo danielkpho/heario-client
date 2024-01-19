@@ -225,17 +225,42 @@ app.post("/incrementGamesWon", function(req, res) {
 
 app.post('/getGamesPlayed', function(req, res) {
     const username = req.body.username;
-    db.all("SELECT total_games_played, games_won FROM games_played WHERE user_id = (SELECT user_id FROM users WHERE username = ?)", [username], (err, result) => {
-        if (err){
+
+    // Upsert (INSERT or UPDATE) the user's data into games_played
+    db.run(`
+        INSERT INTO games_played (user_id, total_games_played, games_won)
+        VALUES (
+            (SELECT user_id FROM users WHERE username = ?),
+            0,
+            0
+        )
+        ON CONFLICT (user_id) DO UPDATE
+        SET total_games_played = COALESCE(games_played.total_games_played, 0),
+            games_won = COALESCE(games_played.games_won, 0)
+    `, [username], (err) => {
+        if (err) {
             res.status(500).send({ err: err.message });
             console.log(err);
         } else {
-            const gamesPlayed = result[0].total_games_played;
-            const gamesWon = result[0].games_won;
-            res.send({ gamesPlayed, gamesWon });
+            // Retrieve the user's data after the upsert
+            db.get(`
+                SELECT total_games_played, games_won
+                FROM games_played
+                WHERE user_id = (SELECT user_id FROM users WHERE username = ?)
+            `, [username], (err, result) => {
+                if (err) {
+                    res.status(500).send({ err: err.message });
+                    console.log(err);
+                } else {
+                    const gamesPlayed = result ? result.total_games_played : 0;
+                    const gamesWon = result ? result.games_won : 0;
+                    res.send({ gamesPlayed, gamesWon });
+                }
+            });
         }
     });
 });
+
 
 app.post('/updateAttempts', function(req, res) {
     const username = req.body.username;

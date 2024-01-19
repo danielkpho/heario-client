@@ -77,49 +77,10 @@ export default function Register(){
         });
     }
 
-    const incrementGamesPlayed = () => { 
-        Axios.post("http://localhost:8000/incrementGamesPlayed", {
-            username: storedUsername,
-        },
-        ).then((response) => {
-            console.log(response);
-        }).catch((error) => {
-            console.log(error);
-        });
-    }
-
-    const getGamesPlayed = () => {
-        if (!storedUsername){
-            setAlertMessage("Please enter a username");
-            setSnackbarOpen(true);
-            return;
-        }
-        Axios.post("http://localhost:8000/getGamesPlayed", {
-            username: storedUsername,
-        }).then((response) => {
-            console.log(response.data.gamesPlayed);
-        }).catch((error) => {
-            console.log(error);
-        });
-    }
-
-    const updateAccuracy = () => {
-        Axios.post("http://localhost:8000/updateAttempts", {
-            username: storedUsername,
-            questionType: "notes",
-            question: "E",
-            correctAttempts: 1,
-            totalAttempts: 2,
-        }).then((response) => {
-            console.log(response);
-        }).catch((error) => {
-            console.log(error);
-        }
-        );
-    }
+    console.log("Register rendered")
 
     return(
-        <div>
+
             <div>
                 <Grid 
                 container
@@ -145,7 +106,7 @@ export default function Register(){
                         onChange={(e) => {setPassword(e.target.value)}}
                         />
                     </Grid>
-                    <Grid
+                    <Grid item
                         container
                         direction="row"
                         justifyContent="center"
@@ -167,13 +128,7 @@ export default function Register(){
                     </Grid>
                 </Grid>
             </div>
-        <div>
-            <h1>{loginStatus}</h1>
-        </div>
-            <button onClick={incrementGamesPlayed}>Increment</button>
-            <button onClick={getGamesPlayed}>Get</button>
-            <button onClick={updateAccuracy}>Update</button>
-        </div>
+        
         
     )
 }

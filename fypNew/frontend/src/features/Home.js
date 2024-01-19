@@ -23,17 +23,20 @@ export default function Home(){
     const username = localStorage.getItem("username");
 
     useEffect(() => {
+        console.log("username mounted");
         if (username) {
             setName(username);
         }
     }
-    , []);
+    , [username]);
     
     useEffect(() => {
+        console.log("getrooms mounted");
         socket.emit("getRooms");
     }, []);
 
     useEffect(() => {
+        console.log("rooms mounted");
         socket.on("rooms", (rooms) => {
           setRooms(rooms);
         });
@@ -99,7 +102,12 @@ export default function Home(){
     }
 
     function register(){
+        if (username) {
+            setAlertMessage("You are already logged in");
+            setSnackbarOpen(true);
+        } else {
         navigate("/register");
+        }
     }
 
     function profile(){
@@ -132,7 +140,7 @@ export default function Home(){
                             onChange={(e) => setName(e.target.value)}
                             required
                             disabled={username}
-                            inputProps={{ style: { color: 'grey' }, maxLength: 15}}
+                            inputProps={{ maxLength: 15}}
                         />
                 </FormControl>
             </Grid>
@@ -148,12 +156,12 @@ export default function Home(){
                                     color="primary"
                                     value={roomId}
                                     onChange={(e) => setRoomId(e.target.value)}
-                                    inputProps={{ style: { color: 'grey' }, maxLength: 4}}
+                                    inputProps={{ maxLength: 4 }}
                                 />
                         </FormControl>
                     </Grid>
                     <Grid item>
-                        <Button variant="contained" color="green" onClick={joinGame} style={{ width: 200 }}>
+                        <Button variant="contained" color="success" onClick={joinGame} style={{ width: 200 }}>
                             Join using code
                         </Button>
                     </Grid>

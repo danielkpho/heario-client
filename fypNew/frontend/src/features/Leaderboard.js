@@ -9,13 +9,13 @@ export default function Leaderboard(){
     const playersArray = Object.values(players);
     const sortedPlayers = playersArray.sort((a, b) => b.score - a.score);
     const top3Players = sortedPlayers.slice(0, 3);
-
     const firstPlace = top3Players[0];
     const username = localStorage.getItem("username");
 
+    console.log("leaderboard rendered");
     useEffect(() => {
         if (username === firstPlace.name) {
-            Axios.post("http://localhost:8000/incrementGamesWon", {
+            Axios.post("http://localhost:8000/incrementGamesWon", { 
                 username: username,
             })
             .then((response) => {
@@ -25,8 +25,7 @@ export default function Leaderboard(){
                 console.log(error);
             });
         }
-    });
-    
+    }, [firstPlace.name]);
 
     return(
         <Grid container spacing={2} alignItems="flex-end" justifyContent="center">

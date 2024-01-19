@@ -5,7 +5,6 @@ import Axios from "axios";
 import { TextField, Button, Grid, TableContainer, TableSortLabel, Table, TableBody, TableHead, TableCell, TableRow, Paper } from "@mui/material";
 
 import { useNavigate } from "react-router-dom";
-import { setGamesPlayed } from "./playerSlice";
 
 export default function Profile(){
     const username = localStorage.getItem("username");
@@ -14,10 +13,7 @@ export default function Profile(){
     const [gamesPlayed, setGamesPlayed] = useState(0);
     const [gamesWon, setGamesWon] = useState(0);
 
-    const [data, setData] = useState([
-        { question_type: 'Type A', question: 'Question 1', correct_attempts: 5, total_attempts: 0.8 },
-        // { question_type: 'Type B', question: 'Question 2', Attempts: 3, Total Attempts: 0.6 },
-      ]);
+    const [data, setData] = useState([]);
     
     const [sortConfig, setSortConfig] = useState({key: null, direction: "ascending"})
     
@@ -149,7 +145,7 @@ export default function Profile(){
                         <Button variant="contained" onClick={() => navigate("/")}>Back</Button>
                     </Grid>
                     <Grid item>
-                        <Button color="secondary" variant="contained" onClick={logout}>Logout</Button>
+                        <Button color="error" variant="contained" onClick={logout}>Logout</Button>
                     </Grid>
                 </Grid>
             </Grid>

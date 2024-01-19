@@ -22,13 +22,13 @@ export default function Settings(){
     const [SnackbarOpen, setSnackbarOpen] = useState(false);
 
     useEffect(() => {
-        socket.emit("getHostId", { roomId: roomId.id });
+        socket.emit("getHostId", { roomId: roomId });
         // Listen for the hostId from the server
         socket.on("hostId", (hostId) => {
             dispatch(setHostId(hostId));
         });
 
-        socket.emit("getSettings", { roomId: roomId.id }); // init the settings from the server
+        socket.emit("getSettings", { roomId: roomId }); // init the settings from the server
         socket.on("settings", (settings) => {
             setRoundSettings(settings);
             dispatch(updateRoundSettings(settings));
@@ -69,8 +69,8 @@ export default function Settings(){
                     return prevRoundSettings;
                 }
     
-                socket.emit("updateSettings", { id: roomId.id, roundSettings: updatedSettings });
-                console.log(roomId.id, updatedSettings);
+                socket.emit("updateSettings", { id: roomId, roundSettings: updatedSettings });
+                console.log(roomId, updatedSettings);
     
                 return updatedSettings;
             });
@@ -156,24 +156,6 @@ export default function Settings(){
                         </Select>
                     </FormControl>
                     </Grid>
-                    {/* <Grid xs={6} item justifyContent={"flex-start"}>
-                        Sharps: 
-                    </Grid>
-                    <Grid item xs={6}>
-                        <FormControl fullWidth>
-                            <InputLabel>Sharps</InputLabel>
-                                <Select
-                                    label="Sharps"
-                                    name="sharps"
-                                    value={roundSettings.sharps}
-                                    onChange={handleChange}
-                                    variant="outlined"
-                                >
-                                    <MenuItem value={true}>Yes</MenuItem>
-                                    <MenuItem value={false} >No</MenuItem>
-                                </Select>
-                        </FormControl>
-                    </Grid> */}
                     <Grid
                         container
                         justifyContent={"center"}
@@ -219,12 +201,12 @@ export default function Settings(){
                         </Grid>
                     </Grid>
                     <Grid item xs={6}>
-                        <Button variant="contained" color="secondary" type="button" onClick={handleLeave} fullWidth >
+                        <Button variant="contained" color="error" type="button" onClick={handleLeave} fullWidth >
                             Leave Lobby
                         </Button>
                     </Grid>
                     <Grid item xs={6}>
-                        <Button variant="contained" color="green" type="submit" fullWidth>
+                        <Button variant="contained" color="success" type="submit" fullWidth>
                             Start Game
                         </Button>
                     </Grid>

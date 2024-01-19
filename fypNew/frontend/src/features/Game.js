@@ -151,7 +151,7 @@ export default function Game(){
         return () => {
             socket.off("nextRound");
         };
-    });
+    }, [roundCount, roundSettings.rounds, duration, dispatch]);
 
     useEffect(( ) => {
         socket.on("scores", ({ scores }) => {
@@ -160,7 +160,7 @@ export default function Game(){
         return () => {
             socket.off("scores");
         };
-    });
+    }, [dispatch]);
 
     function handleOpen(){
         setShowBackdrop(true);
@@ -177,7 +177,7 @@ export default function Game(){
 
     useEffect(() => {
             
-    }, []);
+    }, [isGameOver]);
 
     
 
@@ -249,7 +249,7 @@ export default function Game(){
                         <Grid item>
                             <Button
                                 variant="contained"
-                                color="secondary"
+                                color="error"
                                 onClick={() => handleLeave()}
                             >
                                 Leave Lobby
@@ -258,7 +258,7 @@ export default function Game(){
                         <Grid item>
                             <Button
                                 variant="contained"
-                                color="primary"
+                                color="info"
                                 onClick={() => handleOpen()}
                             >
                                 Statistics
@@ -275,7 +275,7 @@ export default function Game(){
                         <Grid item>
                             <Button
                                 variant="contained"
-                                color="primary"
+                                color="info"
                                 onClick={() => restartGame()}
                             >
                                 Reset Game
