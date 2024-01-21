@@ -19,6 +19,7 @@ export default function Home(){
     const [SnackbarOpen, setSnackbarOpen] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
     const joinedLobby = useSelector(state => state.game.joinedLobby);
+    console.log(rooms);
     
     const username = localStorage.getItem("username");
 
@@ -69,8 +70,14 @@ export default function Home(){
 
     const isRoomJoinable = (roomId) => {
         const targetRoom = rooms.find((room) => room.id === roomId);
-        return targetRoom && !targetRoom.started;
+        return targetRoom && !targetRoom.started && targetRoom.players.length < 4;
     };
+    
+    const isRoomFull = (roomId) => {
+        const targetRoom = rooms.find((room) => room.id === roomId);
+        return targetRoom && targetRoom.players.length >= 4;
+    };
+
 
     const doesRoomExist = (roomId) => {
         return rooms.some((room) => room.id === roomId);
@@ -99,6 +106,29 @@ export default function Home(){
             setAlertMessage("Room has already started");
             setSnackbarOpen(true);
         }
+        if (isRoomFull(roomId)) {
+            setAlertMessage("Room is full");
+            setSnackbarOpen(true);
+        }
+    }
+
+    function joinRandomGame(){
+        const availableRooms = rooms.filter((room) => !room.started && room.players.length < 4);
+        if (!name) {
+            setAlertMessage("Please enter a name");
+            setSnackbarOpen(true);
+        }
+        if (availableRooms.length === 0) {
+            setAlertMessage("No available rooms");
+            setSnackbarOpen(true);
+            return;
+        }
+        const randomRoomId = availableRooms[Math.floor(Math.random() * availableRooms.length)].id;
+        if(name){
+            socket.emit("joinRoom", { id: randomRoomId, name });
+            dispatch(setId(randomRoomId));
+            dispatch(setJoinedLobby(true));
+        }
     }
 
     function register(){
@@ -116,6 +146,10 @@ export default function Home(){
         } else {
             navigate("/register");
         }
+    }
+
+    function piano(){
+        navigate("/piano");
     }
 
     console.log("Home rendered")
@@ -166,6 +200,11 @@ export default function Home(){
                         </Button>
                     </Grid>
                     <Grid item>
+                        <Button variant="contained" color="success" onClick={joinRandomGame} style={{ width: 200 }}>
+                            Join Random Game
+                        </Button>
+                    </Grid>
+                    <Grid item>
                         <Grid 
                             container
                             direction="row"
@@ -175,7 +214,7 @@ export default function Home(){
                         >
                             <Grid item>
                                 <Button variant="contained" color="primary" onClick={register}>
-                                    Register
+                                    Register/Login
                                 </Button>
                             </Grid>
                             <Grid item>
@@ -184,6 +223,11 @@ export default function Home(){
                                 </Button>
                             </Grid>
                         </Grid>
+                    </Grid>
+                    <Grid item>
+                        <Button variant="contained" color="success" onClick={piano} style={{ width: 200 }}>
+                            Practice Piano
+                        </Button>
                     </Grid>
                 <Snackbar open={SnackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
                     <Alert severity="error" onClose={handleSnackbarClose}>

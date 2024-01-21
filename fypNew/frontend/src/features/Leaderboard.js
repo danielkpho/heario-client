@@ -1,8 +1,9 @@
 import React, { useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 
 import { Grid, Paper, Typography } from '@mui/material';
 import Axios from "axios";
+import { newWinner } from "../features/statSlice";
 
 export default function Leaderboard(){
     const players = useSelector(state => state.game.players);
@@ -11,21 +12,29 @@ export default function Leaderboard(){
     const top3Players = sortedPlayers.slice(0, 3);
     const firstPlace = top3Players[0];
     const username = localStorage.getItem("username");
+    const dispatch = useDispatch();
 
     console.log("leaderboard rendered");
+    // useEffect(() => {
+    //     if (username === firstPlace.name) {
+    //         Axios.post("http://localhost:8000/incrementGamesWon", { 
+    //             username: username,
+    //         })
+    //         .then((response) => {
+    //             console.log(response);
+    //         })
+    //         .catch((error) => {
+    //             console.log(error);
+    //         });
+    //     }
+    // }, [firstPlace.name]);
     useEffect(() => {
         if (username === firstPlace.name) {
-            Axios.post("http://localhost:8000/incrementGamesWon", { 
-                username: username,
-            })
-            .then((response) => {
-                console.log(response);
-            })
-            .catch((error) => {
-                console.log(error);
-            });
+            dispatch(newWinner(username));
         }
-    }, [firstPlace.name]);
+    }
+    , [firstPlace.name]);
+            
 
     return(
         <Grid container spacing={2} alignItems="flex-end" justifyContent="center">

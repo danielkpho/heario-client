@@ -7,6 +7,7 @@ class Room {
         this.id = id;
         this.hostId = hostId;
         this.players = {};
+        this.playerCount = 0;
         this.roundCount = 1;
         this.roundSettings = roundSettings;
         this.typesSelected = this.generateTypesSelected();
@@ -36,6 +37,14 @@ class Room {
     }
     addPlayer(id, name){
         this.players[id] = new Player(id, name);
+    }
+    countPlayers(){
+        this.playerCount = Object.keys(this.players).length;
+        return this.playerCount;
+    }
+    getPlayerCount(){
+        this.playerCount = Object.keys(this.players).length;
+        return this.playerCount;
     }
     getPlayer(id){
         return this.players[id];

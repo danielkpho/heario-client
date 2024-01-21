@@ -36,6 +36,8 @@ export default function Game(){
     const questionType = useSelector(state => state.questions.questionType);
     const tone = useSelector(currentTone);
     const [showBackdrop, setShowBackdrop] = useState(false);
+    const username = localStorage.getItem("username");
+    const winner = useSelector(state => state.stats.winner);
 
     let somePiano;
     useEffect(() => { // fix loading 
@@ -67,7 +69,6 @@ export default function Game(){
     }, [isPianoReady]);
 
     useEffect(() => {
-        if (isPianoReady){
             // socket.emit("getCorrectAnswer", { roomId: id });
             socket.on("correctAnswer", (correctAnswer) => {
                 dispatch(setCorrectAnswer(correctAnswer));
@@ -92,8 +93,7 @@ export default function Game(){
                 socket.off("answers");
                 
             };
-        }
-    }, [isPianoReady]);
+    }, [dispatch]);
 
     async function handlePlayNote() {
         if (piano) {
@@ -123,11 +123,7 @@ export default function Game(){
         }
     }
 
-    function restartGame(){
-        socket.emit("resetGame", { roomId: id });
-        dispatch(resetGame());
-        dispatch(resetStats());
-    };
+    
 
 
     function nextRound(){
@@ -138,8 +134,10 @@ export default function Game(){
         socket.on("nextRound", () => {
             console.log("roundCount: " + roundCount);
             if(roundCount < roundSettings.rounds){
-                socket.emit("getQuestion", id);
-                socket.emit("startTimer", { roomId: id, duration })
+                if(socket.id === hostId){
+                    socket.emit("getQuestion", id);
+                    socket.emit("startTimer", { roomId: id, duration })
+                }
                 dispatch(incrementRound());
                 dispatch(incrementQuestion());
                 dispatch(setIsRoundOver(false));
@@ -170,10 +168,36 @@ export default function Game(){
     }
 
     function handleLeave(){
+        if (username === winner){ 
+            Axios.post("http://localhost:8000/incrementGamesWon", {
+                username,
+            } , {
+            }).then((response) => {
+                console.log(response);
+            }).catch((error) => {
+                console.log(error);
+            });
+        }
         socket.emit("leaveRoom", { roomId: id });
         dispatch(resetState());
         dispatch(resetStats())
     }
+
+    function restartGame(){
+        if (username === winner){ 
+            Axios.post("http://localhost:8000/incrementGamesWon", {
+                username,
+            } , {
+            }).then((response) => {
+                console.log(response);
+            }).catch((error) => {
+                console.log(error);
+            });
+        }
+        socket.emit("resetGame", { roomId: id });
+        dispatch(resetGame());
+        dispatch(resetStats());
+    };
 
     useEffect(() => {
             

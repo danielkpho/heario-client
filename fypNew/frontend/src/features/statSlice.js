@@ -6,6 +6,7 @@ export const statSlice = createSlice({
         questions: [],
         tries: [],
         accuracy: [],
+        winner: "",
     },
     reducers: {
         newQuestion: (state, action) => {
@@ -22,6 +23,9 @@ export const statSlice = createSlice({
             state.questions = [];
             state.tries = [];
             state.accuracy = [];
+        },
+        newWinner: (state, action) => {
+            state.winner = action.payload;
         }
     }
 });
@@ -30,6 +34,7 @@ export const {
     newQuestion,
     incrementTries,
     resetStats,
+    newWinner,
 } = statSlice.actions;
 
 export const allQuestions = state => state.stats.questions;

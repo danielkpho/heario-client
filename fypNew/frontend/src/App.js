@@ -5,6 +5,7 @@ import Home from "./features/Home";
 import Lobby from "./features/Lobby";
 import Register from "./features/Register";
 import Profile from "./features/Profile";
+import ReactPiano from "./features/Piano/Piano";
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { styled } from '@mui/material/styles';  
@@ -13,7 +14,6 @@ import Grid from '@mui/material/Grid';
 import { CssBaseline, Typography, Link } from "@mui/material";
 
 import "./Knewave.css"
-import Image from "./img/AudiosProfessionalX.png"
 
 import { blue, green, red } from "@mui/material/colors";
 
@@ -97,8 +97,9 @@ function App() {
       <BrowserRouter>
         <Routes>
         <Route path="/" exact element={<div><Home /></div>} />
-          <Route path="/register" exact element={ <Register/>} />
-          <Route path ="/profile" exact element={<Profile/>} />
+          <Route path="/register" exact element= {<Register/>} />
+          <Route path ="/profile" exact element= {<Profile/>} />
+          <Route path = "/piano" exact element= {<ReactPiano/>} />
         </Routes>
       </BrowserRouter>
     </div>

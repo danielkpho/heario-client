@@ -1,7 +1,7 @@
 import React , {useState, useEffect} from "react";
 import { socket } from "../api/socket";
 import { useSelector, useDispatch } from "react-redux";
-import { resetState, setHostId, setIsStarted, updateRoundSettings, setIsRoundOver, setStatus, selectTimer, setJoinedLobby } from "./gameSlice";
+import { resetState, setHostId, updateRoundSettings, selectTimer } from "./gameSlice";
 
 import { Alert, FormControlLabel, Checkbox, Grid, Button, Select, MenuItem, InputLabel, FormControl, Snackbar } from '@mui/material';
 
@@ -45,7 +45,7 @@ export default function Settings(){
             socket.off("hostId");
             socket.off("updatedSettings");
         };
-    },[]); // play with this dependancy array TODO because it is rerendering too much
+    }, []);
 
     
     const handleChange = (event) => {

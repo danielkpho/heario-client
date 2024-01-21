@@ -348,7 +348,7 @@ app.post('/getAttempts', function (req,res) {
 
 io.on('connection', socket => { 
     console.log('user with socket id ' + socket.id + ' connected');
-
+    console.log(rooms);
     io.to(socket.id).emit("allRoomsId", Object.keys(rooms));
 
     socket.on("createRoom", ({ id, roundSettings, name }) => { // host creates room
@@ -363,20 +363,21 @@ io.on('connection', socket => {
             io.to(id).emit("allPlayers", room.getAllPlayers()); // send all players in room to new player
         }
         console.log('user with socket id ' + socket.id + ' created and joined room ' + id);
-        io.emit("rooms", Object.keys(rooms).map((id) => ({ id, started: rooms[id].started })));
+        io.emit("rooms", Object.keys(rooms).map((id) => ({ id, started: rooms[id].started, players: rooms[id].getPlayerCount() })));
         io.emit("message", { name: "Console", message: name + " created a room!" });
         console.log(rooms);
 
     });
 
     socket.on("getRooms", () => { // player requests rooms
-        io.to(socket.id).emit("rooms", Object.keys(rooms).map((id) => ({ id, started: rooms[id].started })));
+        io.to(socket.id).emit("rooms", Object.keys(rooms).map((id) => ({ id, started: rooms[id].started, players: rooms[id].getPlayerCount()})));
     });
     
 
     socket.on("joinRoom", ({id, name}) => { // player joins room
         const room = rooms[id];
         if (!room) return; 
+        if (room.players.length >= 8) return; // room is full
         socket.join(id);
         room.addPlayer(socket.id, name);
         if (room.getPlayer(socket.id)){ // if player was added successfully
@@ -523,6 +524,7 @@ io.on('connection', socket => {
         if (room){
             delete rooms[roomId];
             io.to(roomId).emit("hostLeft");
+            io.to(socket.id).emit("rooms", Object.keys(rooms).map((id) => ({ id, started: rooms[id].started, players: rooms[id].getPlayerCount() })));
             console.log('user with socket id ' + socket.id + ' deleted room ' + roomId);
         } else {
             console.log('user with socket id ' + socket.id + ' tried to delete room ' + roomId + ' but it does not exist');

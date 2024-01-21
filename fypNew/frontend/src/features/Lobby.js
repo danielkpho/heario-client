@@ -22,6 +22,7 @@ export default function Lobby(){
     const isStarted = useSelector(state => state.game.isStarted);
     const roundCount = useSelector(state => state.game.roundCount);
     const status = useSelector(state => state.game.status);
+    const username = localStorage.getItem("username");
 
     useEffect(() => {
         const handleBeforeUnload = (event) => {
@@ -51,14 +52,16 @@ export default function Lobby(){
         socket.on("gameStarted", () => {
             dispatch(setIsStarted(true));
             dispatch(setStatus("playing"))
-            Axios.post("http://localhost:8000/incrementGamesPlayed", {
-                username: localStorage.getItem("username"),
-            } , {
-            }).then((response) => {
-                console.log(response);
-            }).catch((error) => {
-                console.log(error);
-            });
+            if(username){
+                Axios.post("http://localhost:8000/incrementGamesPlayed", {
+                    username: localStorage.getItem("username"),
+                } , {
+                }).then((response) => {
+                    console.log(response);
+                }).catch((error) => {
+                    console.log(error);
+                });
+            }
             console.log("gameStarted");
         });
         socket.on("gameReset", () => {

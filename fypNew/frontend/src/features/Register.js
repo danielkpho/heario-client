@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 import Axios from "axios";
 
@@ -13,7 +13,6 @@ export default function Register(){
     const [SnackbarOpen, setSnackbarOpen] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
 
-    const [loginStatus, setLoginStatus] = useState('');
     const token = localStorage.getItem("token");
 
     const navigate = useNavigate();
@@ -41,10 +40,8 @@ export default function Register(){
                 setAlertMessage("User already exists");
                 setSnackbarOpen(true);
             } else {
-                setLoginStatus(response.data.username);
                 localStorage.setItem("token", response.data.token);
                 localStorage.setItem("username", response.data.username);
-                console.log(token);
             }
         }).catch((error) => {
             console.log(error);
@@ -66,10 +63,8 @@ export default function Register(){
                 setAlertMessage(response.data.message);
                 setSnackbarOpen(true);
             } else {
-                setLoginStatus(response.data.username);
                 localStorage.setItem("token", response.data.token);
                 localStorage.setItem("username", response.data.username);
-                console.log(token);
                 navigate("/")
             }
         }).catch((error) => {
