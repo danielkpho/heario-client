@@ -7,6 +7,8 @@ import { Grid } from "@mui/material";
 import SoundfontProvider from './SoundfontProvider';
 
 // webkitAudioContext fallback needed to support Safari
+export default function ReactPiano(){
+
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 const soundfontHostname = 'https://d1pzp51pvbm36p.cloudfront.net';
 
@@ -20,7 +22,6 @@ const keyboardShortcuts = KeyboardShortcuts.create({
   keyboardConfig: KeyboardShortcuts.HOME_ROW,
 });
 
-export default function ReactPiano(){
   return (
     <div>
       <div className="mt-5">
@@ -28,7 +29,6 @@ export default function ReactPiano(){
       </div>
     </div>
   );
-}
 
 function BasicPiano() {
     return (
@@ -48,7 +48,7 @@ function BasicPiano() {
             render={({ isLoading, playNote, stopNote }) => (
                 <Piano
                 noteRange={noteRange}
-                width={500}
+                width={300}
                 playNote={playNote}
                 stopNote={stopNote}
                 disabled={isLoading}
@@ -60,5 +60,6 @@ function BasicPiano() {
         <Grid/>
     </Grid>
     );
+}
 }
 

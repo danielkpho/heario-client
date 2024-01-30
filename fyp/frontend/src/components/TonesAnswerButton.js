@@ -32,7 +32,7 @@ function TonesAnswerButton(props) {
         return () => clearTimeout(timeoutId); // Cleanup on component unmount or re-render
       }
 
-      if (props.isCorrect == true){
+      if (props.isCorrect == true){ // 
         setClickedButtons(props.answers);
       }
     }, [props.resetClickedButtons, props.answers, props.isCorrect]);

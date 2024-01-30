@@ -2,13 +2,11 @@ import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import Home from "./features/Home";
-import Lobby from "./features/Lobby";
 import Register from "./features/Register";
 import Profile from "./features/Profile";
 import ReactPiano from "./features/Piano/Piano";
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { styled } from '@mui/material/styles';  
 
 import Grid from '@mui/material/Grid';
 import { CssBaseline, Typography, Link } from "@mui/material";

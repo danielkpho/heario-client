@@ -7,6 +7,7 @@ import { allAnswers, correctAns } from "./questionsSlice";
 import { incrementTries } from "./statSlice";
 import { socket } from "../api/socket";
 import Axios from "axios";
+import { allQuestions, allTries, allAccuracy } from "../features/statSlice";
 
 function TonesAnswerButton(){
     const id = useSelector(state => state.game.id);
@@ -47,8 +48,30 @@ function TonesAnswerButton(){
         </Grid>
     ));
 
+    const questions = useSelector(allQuestions);
+    const tries = useSelector(allTries);
+    const accuracy = useSelector(allAccuracy);
+
+    const data = questions.map((question, index) => {
+        return {
+            question,
+            tries: tries[index],
+            accuracy: accuracy[index],
+        }
+    });
+
+    useEffect(() => {
+        socket.emit("data", {
+            roomId: id,
+            userId: socket.id,
+            data: data,
+        })
+    }, [data]);
+
+
     function handleGameAnswer(note){
         dispatch(incrementTries(correctAnswer));
+        
         if (note === correctAnswer){
             socket.emit("setScore", {
                 roomId: id,

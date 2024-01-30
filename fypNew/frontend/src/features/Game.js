@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, lazy, Suspense } from "react";
+import { lazyWithPreload} from "react-lazy-with-preload"
 import { socket } from "../api/socket";
 import { useDispatch, useSelector } from "react-redux";
 
 import { instrument as soundfontInstrument } from "soundfont-player";
 
 import { setIsStarted, resetState, setScores, incrementRound, incrementQuestion, resetGame, setIsRoundOver, setIsGameOver, selectTimer, setStatus } from "./gameSlice";
-import { newQuestion, resetStats } from "./statSlice.js"
+import { newQuestion, resetStats, allQuestions, allTries, allAccuracy } from "./statSlice.js"
 import { setAnswers, setQuestionType, setTone, setCorrectAnswer, correctAns, currentTone } from "./questionsSlice";
 
 
@@ -13,6 +14,7 @@ import Timer from "./Timer";
 import Leaderboard from "./Leaderboard";
 import Statistics from "./Statistics";
 import { TonesAnswerButton } from "./TonesAnswerButtons";
+import Leaderboard2 from "./Leaderboard2";
 
 import { Grid, Button, Backdrop } from "@mui/material";
 import { VolumeUp } from "@mui/icons-material";
@@ -38,6 +40,21 @@ export default function Game(){
     const [showBackdrop, setShowBackdrop] = useState(false);
     const username = localStorage.getItem("username");
     const winner = useSelector(state => state.stats.winner);
+
+    const LazyReactPiano = lazyWithPreload(() => import("./Piano/Piano.js"));
+    const [pianoLoaded, setPianoLoaded] = useState(false);
+
+    useEffect(() => {
+        const loadReactPiano = async () => {
+            // Assuming ReactPiano has an asynchronous initialization method
+            await LazyReactPiano.preload();
+            setPianoLoaded(true);
+          };
+      
+          if (!pianoLoaded) {
+            loadReactPiano();
+          }
+        }, [pianoLoaded]);
 
     let somePiano;
     useEffect(() => { // fix loading 
@@ -123,12 +140,10 @@ export default function Game(){
         }
     }
 
-    
-
-
     function nextRound(){
         socket.emit("nextRound", { roomId: id });
     }
+        
 
     useEffect(() => {
         socket.on("nextRound", () => {
@@ -199,9 +214,13 @@ export default function Game(){
         dispatch(resetStats());
     };
 
-    useEffect(() => {
-            
-    }, [isGameOver]);
+    function isPiano(){
+        if (roundSettings.piano === 0){
+            return false;
+        } else {
+            return true;
+        }
+    }
 
     
 
@@ -235,7 +254,17 @@ export default function Game(){
                         <Grid item>
                             {!roundOver && (
                             <div>
-                                <TonesAnswerButton />
+                                <div>
+                                {isPiano() && (
+                                    <Suspense fallback={<div>Loading...</div>}>
+                                    {/* Use LazyReactPiano instead of ReactPiano */}
+                                    <LazyReactPiano />
+                                    </Suspense>
+                                )}
+                                </div>
+                                <div>
+                                    <TonesAnswerButton />
+                                </div>
                             </div>           
                             )}
                         </Grid>
@@ -243,9 +272,16 @@ export default function Game(){
                     <div>
                         {roundOver && (
                             <div>
-                                <p>The correct answer was {correctAnswer}</p>
+                                <div>
+                                    <Leaderboard />
+                                    <Leaderboard2 />
+                                </div>
+                                <div>
+                                    <p>The correct answer was {correctAnswer}</p>
+                                </div>
                             </div>
                         )}
+                        
                         <div>
                             <Timer />
                         </div>

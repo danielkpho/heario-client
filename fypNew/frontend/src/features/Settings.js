@@ -9,11 +9,12 @@ export default function Settings(){
     const [roundSettings, setRoundSettings] = useState({
         rounds: 3, 
         time: 10,
+        piano: 0,
         sharps: false,
         notes: true,
         intervals: false,
         scales: false,
-        chords: false
+        chords: false,
     }); 
     const hostId = useSelector(state => state.game.hostId);
     const dispatch = useDispatch();
@@ -79,6 +80,7 @@ export default function Settings(){
         }
     };
 
+
     const handleSnackbarClose = () => {
         setSnackbarOpen(false);
       };
@@ -98,6 +100,8 @@ export default function Settings(){
             event.preventDefault();
             socket.emit("startGame", { roomId: roomId , roundSettings });
             socket.emit("startTimer", { roomId: roomId , duration })
+        } else {
+            setSnackbarOpen(true);
         }
     }
 
@@ -114,7 +118,7 @@ export default function Settings(){
                             </Grid>
                         </Grid>
                     </Grid>
-            <form onSubmit={handleSubmit}>
+           
                 <Grid container spacing={2} alignItems="center" justifyContent={"space-between"}>
                     <Grid xs={6} item justifyContent={"center"}>
                         Rounds:
@@ -153,6 +157,24 @@ export default function Settings(){
                             <MenuItem value={15} >15 Seconds</MenuItem>
                             <MenuItem value={20} >20 Seconds</MenuItem>
                             <MenuItem value={30} >30 Seconds</MenuItem>
+                        </Select>
+                    </FormControl>
+                    </Grid>
+                    <Grid xs={6} item justifyContent={"center"}>
+                        Reference Piano:
+                    </Grid>
+                    <Grid item xs={6}>
+                    <FormControl fullWidth>
+                    <InputLabel>Piano</InputLabel>
+                        <Select
+                            label="Piano"
+                            name="piano"
+                            value={roundSettings.piano}
+                            onChange={handleChange}
+                            variant="outlined"
+                        >
+                            <MenuItem value={1} >Yes</MenuItem>
+                            <MenuItem value={0} >No</MenuItem>
                         </Select>
                     </FormControl>
                     </Grid>
@@ -206,7 +228,7 @@ export default function Settings(){
                         </Button>
                     </Grid>
                     <Grid item xs={6}>
-                        <Button variant="contained" color="success" type="submit" fullWidth>
+                        <Button variant="contained" color="success" type="button" onClick={handleSubmit} fullWidth>
                             Start Game
                         </Button>
                     </Grid>
@@ -216,7 +238,7 @@ export default function Settings(){
                     Only the host can change settings
                     </Alert>
                 </Snackbar>
-    </form>
+ 
         </div>
     );
 }

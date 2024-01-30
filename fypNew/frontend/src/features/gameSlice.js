@@ -10,6 +10,7 @@ const initialState = {
     roundSettings: {
         rounds: 3,
         time: 10,
+        piano: 0,
         sharps: false,
         notes: true,
         intervals: true,
@@ -21,7 +22,7 @@ const initialState = {
     isRoundOver: false,
     isGameOver: false,
     isStarted: false,
-    scores: [],
+    scores: [], // { id: 1, name: 'player1', score: 0 }
 }
 
 export const gameSlice = createSlice({
@@ -90,6 +91,7 @@ export const gameSlice = createSlice({
             state.roundSettings = {
                 rounds: 3,
                 time: 10,
+                piano: 0,
                 sharps: false,
                 notes: true,
                 intervals: true,

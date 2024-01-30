@@ -8,9 +8,11 @@ import { resetStats } from "../features/statSlice";
 
 import Game from "./Game";
 import Chat from "./Chat";
+import ReactPiano from "./Piano/Piano";
 
 import { Grid, Paper, Typography } from "@mui/material";
 import { Stack } from "@mui/material";
+import EmojiEvents from "@mui/icons-material/EmojiEvents";
 
 import Axios from "axios";
 
@@ -99,8 +101,8 @@ export default function Lobby(){
         };
     }, [socket]);
 
-    console.log("Lobby rendered");
-    console.log("isStarted:", isStarted);
+    const highestScore = Math.max.apply(Math, Object.values(players).map((player) => player.score));
+
         
     return (
         <div>
@@ -152,12 +154,16 @@ export default function Lobby(){
                                     spacing={1}
                                     padding={2}
                                 >
+                                    {player.score === highestScore && player.score !== 0 && (
+                                        <EmojiEvents />
+                                    )}
                                     <div>Name: {player.name}</div>
                                     <div>Score: {player.score}</div>
                                 </Stack>
                             </Paper>
                             ))}
                         </Stack>
+                        
                     </Grid>
                     <Grid item xs={6} padding={2}>
                         <Grid item bgcolor={"primary.main"} borderRadius="12px" padding={2}>

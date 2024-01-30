@@ -6,9 +6,9 @@ import { allQuestions, allTries, allAccuracy } from "../features/statSlice";
 
 
 export default function Statistics(){
-    const questions = useSelector(allQuestions);
-    const tries = useSelector(allTries);
-    const accuracy = useSelector(allAccuracy);
+  const questions = useSelector(allQuestions);
+  const tries = useSelector(allTries);
+  const accuracy = useSelector(allAccuracy);
 
     const data = questions.map((question, index) => {
         return {

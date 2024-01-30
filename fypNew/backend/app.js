@@ -348,7 +348,6 @@ app.post('/getAttempts', function (req,res) {
 
 io.on('connection', socket => { 
     console.log('user with socket id ' + socket.id + ' connected');
-    console.log(rooms);
     io.to(socket.id).emit("allRoomsId", Object.keys(rooms));
 
     socket.on("createRoom", ({ id, roundSettings, name }) => { // host creates room
@@ -359,7 +358,6 @@ io.on('connection', socket => {
         socket.join(id);
         room.addPlayer(socket.id, name);
         if (room.getPlayer(socket.id)){ 
-            console.log("sending all players");
             io.to(id).emit("allPlayers", room.getAllPlayers()); // send all players in room to new player
         }
         console.log('user with socket id ' + socket.id + ' created and joined room ' + id);
@@ -377,14 +375,13 @@ io.on('connection', socket => {
     socket.on("joinRoom", ({id, name}) => { // player joins room
         const room = rooms[id];
         if (!room) return; 
-        if (room.players.length >= 8) return; // room is full
+        if (room.players.length >= 4) return; // room is full
         socket.join(id);
         room.addPlayer(socket.id, name);
         if (room.getPlayer(socket.id)){ // if player was added successfully
             io.to(id).emit("allPlayers", room.getAllPlayers()); // send all players in room to new player
         }
         console.log('user with socket id ' + socket.id + ' joined room ' + id);
-        console.log(rooms[id]);
         io.to(id).emit("message", { name: "Console", message: name + " joined the room!" });
     })
 
@@ -403,7 +400,6 @@ io.on('connection', socket => {
         const room = rooms[roomId];
         if (room){
              io.to(socket.id).emit("hostId", room.hostId);
-             console.log(room.hostId);
         }
        
     });
@@ -420,7 +416,6 @@ io.on('connection', socket => {
         if (room) {
             room.setRoundSettings(roundSettings);
             room.started = true;
-            // console.log(room.getQuestion());
             io.to(roomId).emit("gameStarted");
             io.to(roomId).emit("message", { name: "Console", message: "Game started!" });
             console.log('game started in room ' + roomId);
@@ -438,7 +433,6 @@ io.on('connection', socket => {
             io.to(roomId).emit("answers", room.getQuestionAnswers());
             io.to(roomId).emit("correctAnswer", room.getCorrectAnswer());
             io.to(roomId).emit("questionType", room.getQuestionType());
-            console.log("roundCount " + room.roundCount)
             console.log('user with socket id ' + socket.id + ' requested question from room ' + roomId);
         }
     });
@@ -458,7 +452,6 @@ io.on('connection', socket => {
 
     socket.on("getCorrectAnswer", ({ roomId }) => { // player requests correct answer
         const room = rooms[roomId];
-        console.log(room.getCorrectAnswer());
         if (room) {
             io.to(socket.id).emit("correctAnswer", room.getCorrectAnswer());
         }
@@ -478,6 +471,7 @@ io.on('connection', socket => {
             io.to(roomId).emit("allPlayers", room.getAllPlayers());
             socket.emit("message", { name: "Console", message: "Correct! You scored " + score + " point(s)!" });
     });
+
     
     socket.on("getScores", ({ roomId }) => { // player requests scores
         const room = rooms[roomId];
@@ -486,9 +480,24 @@ io.on('connection', socket => {
         }
     });
 
+    socket.on("data", ({ roomId, userId, data }) => { // player submits data
+        const room = rooms[roomId];
+        console.log(data);
+        if (room) {
+            room.setPlayerData(userId, data);
+        }
+    });
+
+    socket.on("getData", ({ roomId }) => { // player requests data
+        const room = rooms[roomId];
+        if (room) {
+            io.to(socket.id).emit("data", { data: room.getAllPlayerData() });
+        }
+    });
+
+
     socket.on("sendMessage", ({ roomId, message }) => { // player sends message
         const room = rooms[roomId];
-        console.log(message);
         if (room) {
             const senderName = room.getPlayer(socket.id).name;
             socket.broadcast.to(roomId).emit("message", { name: senderName, message });        }
@@ -500,7 +509,6 @@ io.on('connection', socket => {
         if (room) {
             room.resetGame();
             room.started = false;
-            console.log(room);
             io.to(roomId).emit("allPlayers", room.getAllPlayers());
             socket.broadcast.to(roomId).emit("gameReset");
             io.to(roomId).emit("message", { name: "Console", message: "Game reset!" });
@@ -516,6 +524,10 @@ io.on('connection', socket => {
             io.to(roomId).emit("allPlayers", room.getAllPlayers());
             io.to(roomId).emit("message", { name: "Console", message: playerName + " left the room!"});
             console.log('user with socket id ' + socket.id + ' left room ' + roomId);
+            if (room.getPlayerCount() === 0) {
+                delete rooms[roomId];
+                io.emit("rooms", Object.keys(rooms).map((id) => ({ id, started: rooms[id].started, players: rooms[id].getPlayerCount() })));
+            }
         }
     });
 
@@ -552,9 +564,6 @@ io.on('connection', socket => {
                 const remainingTime = Math.max(0, endTime - currentTime);
                 io.to(roomId).emit("timer-update", Math.round(remainingTime/1000));
 
-                console.log(remainingTime);
-
-
                 if (remainingTime <= 0) {
                     clearInterval(timer);
                     io.to(roomId).emit("timer-end");
@@ -564,6 +573,7 @@ io.on('connection', socket => {
     });
 
     socket.on("round-over", roomId => { // player ends round
+
         const room = rooms[roomId];
         if (room) {
             const endTime = Date.now() + 5 * 1000;
@@ -575,10 +585,7 @@ io.on('connection', socket => {
 
                 io.to(roomId).emit("timer-update", Math.round(remainingTime/1000));
 
-                console.log(remainingTime);
-
                 if (remainingTime <= 0) { // have to fix sending multiple times
-                    console.log("nextround emitted")
                     clearInterval(timer);
                     room.roundCount++;
                     io.to(roomId).emit("nextRound");

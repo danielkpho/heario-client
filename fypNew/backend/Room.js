@@ -95,16 +95,8 @@ class Room {
     getQuestionType(){
         return this.question.getQuestionType();
     }
-    answerQuestion(playerId, answer){
-        if(answer === this.question.getCorrectAnswer()){
-            this.players[playerId].addScore();
-            console.log(this.players[playerId]);
-        }
-    }
     setPlayerScore(playerId, score){
         this.players[playerId].setScore(score);
-        const player = this.players[playerId];
-        const Score = player.getScore();
         console.log(`Player ID: ${playerId}, Score: ${score}`);
     }
     getScores(){
@@ -118,6 +110,19 @@ class Room {
         console.log(scores);
         scores.sort((a, b) => (a.score < b.score) ? 1 : -1);
         return scores;
+    }
+    setPlayerData(playerId, data){
+        this.players[playerId].setData(data); // data is an array of [question, tries, accuracy
+    }
+    getAllPlayerData(){
+        const data = [];
+        for (let player in this.players){
+            let name = this.players[player].getName();
+            let playerdata = this.players[player].getData();
+            data.push({ name, playerdata});
+        }
+        console.log(JSON.stringify(data));
+        return data;
     }
     removePlayer(id){
         delete this.players[id];

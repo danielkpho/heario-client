@@ -19,12 +19,10 @@ export default function Home(){
     const [SnackbarOpen, setSnackbarOpen] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
     const joinedLobby = useSelector(state => state.game.joinedLobby);
-    console.log(rooms);
     
     const username = localStorage.getItem("username");
 
     useEffect(() => {
-        console.log("username mounted");
         if (username) {
             setName(username);
         }
@@ -32,12 +30,10 @@ export default function Home(){
     , [username]);
     
     useEffect(() => {
-        console.log("getrooms mounted");
         socket.emit("getRooms");
     }, []);
 
     useEffect(() => {
-        console.log("rooms mounted");
         socket.on("rooms", (rooms) => {
           setRooms(rooms);
         });
@@ -53,7 +49,7 @@ export default function Home(){
     function createGame(){
         const roomId = nanoid(4);
             if (name) {
-                socket.emit("createRoom", { id: roomId, roundSettings: {rounds: 3, time: 10, notes: true, sharps: false, intervals: false, scales: false, chords: false}, name })
+                socket.emit("createRoom", { id: roomId, roundSettings: {rounds: 3, time: 10, piano: 0, notes: true, sharps: false, intervals: false, scales: false, chords: false}, name })
                 dispatch(setId(roomId));
                 dispatch(setHostId(socket.id));
                 dispatch(setJoinedLobby(true));
@@ -70,7 +66,7 @@ export default function Home(){
 
     const isRoomJoinable = (roomId) => {
         const targetRoom = rooms.find((room) => room.id === roomId);
-        return targetRoom && !targetRoom.started && targetRoom.players.length < 4;
+        return targetRoom && !targetRoom.started ;
     };
     
     const isRoomFull = (roomId) => {
@@ -89,6 +85,7 @@ export default function Home(){
     };
 
     function joinGame(){
+        console.log(isRoomJoinable(roomId));
         if (isRoomJoinable(roomId) && name) {
                 socket.emit("joinRoom", { id: roomId, name });
                 dispatch(setId(roomId));
@@ -113,7 +110,7 @@ export default function Home(){
     }
 
     function joinRandomGame(){
-        const availableRooms = rooms.filter((room) => !room.started && room.players.length < 4);
+        const availableRooms = rooms.filter((room) => !room.started && room.players < 4);
         if (!name) {
             setAlertMessage("Please enter a name");
             setSnackbarOpen(true);
@@ -151,8 +148,6 @@ export default function Home(){
     function piano(){
         navigate("/piano");
     }
-
-    console.log("Home rendered")
     
     return (
         (!joinedLobby) ? (
@@ -225,7 +220,7 @@ export default function Home(){
                         </Grid>
                     </Grid>
                     <Grid item>
-                        <Button variant="contained" color="success" onClick={piano} style={{ width: 200 }}>
+                        <Button variant="contained" color="error" onClick={piano} style={{ width: 200 }}>
                             Practice Piano
                         </Button>
                     </Grid>
