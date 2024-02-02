@@ -30,25 +30,16 @@ const io = socketio(expressServer, {
 
 const rooms = {};
 
-// const sqlite3 = require('sqlite3').verbose();
 
-// const db = new sqlite3.Database('./heariodb.db', (err) => {
-//     if (err) {
-//         console.error(err.message);
-//     }
-//     console.log('Connected to the heariodb database.');
-// });
-
-// db.run('CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, password TEXT NOT NULL)');
-// db.run('CREATE TABLE IF NOT EXISTS games_played (user_id INT PRIMARY KEY, total_games_played INT, games_won INT, FOREIGN KEY (user_id) REFERENCES users(user_id))');
-// db.run('CREATE TABLE IF NOT EXISTS user_tokens (user_id INT PRIMARY KEY, token TEXT, FOREIGN KEY (user_id) REFERENCES users(user_id))');
-// db.run('CREATE TABLE IF NOT EXISTS user_attempts (user_id INTEGER,question_type VARCHAR(50),question VARCHAR(50), correct_attempts FLOAT, total_attempts FLOAT, PRIMARY KEY (user_id, question_type, question), FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE)');
 const { Pool } = require('pg');
 
 const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/heariodb';
 
 const pool = new Pool({
     connectionString: connectionString,
+    ssl: {
+        rejectUnauthorized: false, // Accept any SSL certificate (not recommended for production)
+      }
 });
 
 pool.connect()
