@@ -3,7 +3,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const socketio = require('socket.io');
 const cors = require('cors');
-const PORT = 8000; // port to run server on
+const PORT = process.env.PORT || 8000; // port to run server on
 // require('dotenv').config();
 // const secretKey = process.env.HEARIO_SECRET_KEY;
 
@@ -13,8 +13,8 @@ const PORT = 8000; // port to run server on
 
 
 const app = express();
-const expressServer = app.listen(PORT, () => // start server on port 8080
-    console.log("Server has started on port " + PORT)
+const expressServer = app.listen(PORT, () => // start server on port 8000
+    console.log("Server has started on port ${PORT}")
 );
 
 app.use(cors());
@@ -28,46 +28,6 @@ const io = socketio(expressServer, {
 });
 
 const rooms = {};
-
-// var mysql = require('mysql');
-
-// var db = mysql.createConnection({
-//     host: "localhost",
-//     user: "root",
-//     password: "password",
-//     database: "heariodb"
-// });
-
-// db.connect(function(err) {
-//     if (err) throw err;
-//     console.log("Connected!");
-// });
-
-// app.post('/register', function(req, res) {
-//     const username = req.body.username;
-//     const password = req.body.password;
-//     console.log(username, password);
-
-//     db.query("INSERT INTO users (username, password) VALUES (?, ?)", [username, password], (err, result) => { console.log(err);})
-//     console.log("User registered");
-// });
-
-// app.post('/login', function(req, res) {
-//     const username = req.body.username;
-//     const password = req.body.password;
-
-//     db.query("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, result) => {
-//         if (err){
-//             res.send({ err: err });
-//             console.log(err);
-//         } 
-//         if (result.length > 0) {
-//             res.send(result);
-//         } else {
-//             res.send({ message: "Wrong username/password combination!" })
-//         }    
-//     })
-// });
 
 const sqlite3 = require('sqlite3').verbose();
 
