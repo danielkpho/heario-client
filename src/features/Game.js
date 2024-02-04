@@ -10,6 +10,7 @@ import { setIsStarted, resetState, setScores, incrementRound, incrementQuestion,
 import { newQuestion, resetStats, allQuestions, allTries, allAccuracy } from "./statSlice.js"
 import { setAnswers, setQuestionType, setTone, setCorrectAnswer, correctAns, currentTone } from "./questionsSlice";
 
+import { getAudioContextInstance } from "./audioContextSingleton.js";
 
 import Timer from "./Timer";
 import Leaderboard from "./Leaderboard";
@@ -59,7 +60,7 @@ export default function Game(){
 
     let somePiano;
     useEffect(() => { // fix loading 
-        const ac = new AudioContext();
+        const ac = getAudioContextInstance();
         soundfontInstrument(ac, 'acoustic_grand_piano', { soundfont: 'MusyngKite' })
           .then((acoustic_grand_piano) => {
             somePiano = acoustic_grand_piano;
@@ -114,6 +115,8 @@ export default function Game(){
     }, [dispatch]);
 
     async function handlePlayNote() {
+        console.log("isPianoReady: " + isPianoReady)
+        console.log("piano: " + JSON.stringify(piano))
         if (piano) {
             try { 
                 if (Array.isArray(tone)) {
