@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import { Grid, Paper, Typography } from '@mui/material';
-import Axios from "axios";
 import { newWinner } from "../features/statSlice";
 
 export default function Leaderboard(){
@@ -14,7 +13,6 @@ export default function Leaderboard(){
     const username = localStorage.getItem("username");
     const dispatch = useDispatch();
 
-    console.log("leaderboard rendered");
     // useEffect(() => {
     //     if (username === firstPlace.name) {
     //         Axios.post("http://localhost:8000/incrementGamesWon", { 
