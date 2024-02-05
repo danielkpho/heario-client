@@ -6,8 +6,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { instrument as soundfontInstrument } from "soundfont-player";
 import SoundfontProvider from "./Piano/SoundfontProvider.js";
 
-import { setIsStarted, resetState, setScores, incrementRound, incrementQuestion, resetGame, setIsRoundOver, setIsGameOver, selectTimer, setStatus } from "./gameSlice";
-import { newQuestion, resetStats, allQuestions, allTries, allAccuracy } from "./statSlice.js"
+import { resetState, setScores, incrementRound, incrementQuestion, resetGame, setIsRoundOver, setIsGameOver, selectTimer, setStatus } from "./gameSlice";
+import { newQuestion, resetStats } from "./statSlice.js"
 import { setAnswers, setQuestionType, setTone, setCorrectAnswer, correctAns, currentTone } from "./questionsSlice";
 
 import { getAudioContextInstance } from "./audioContextSingleton.js";
