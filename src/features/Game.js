@@ -57,7 +57,7 @@ export default function Game(){
         }, [pianoLoaded]);
 
     let somePiano;
-    useEffect(() => { // fix loading 
+    useEffect(() => {
         const ac = new AudioContext();
         soundfontInstrument(ac, 'acoustic_grand_piano', { soundfont: 'MusyngKite' })
           .then((acoustic_grand_piano) => {
@@ -65,10 +65,13 @@ export default function Game(){
             setPiano(acoustic_grand_piano);
             console.log("piano is ready");
             setIsPianoReady(true);
+            console.log("ac state: " + ac.state);
           });
     
         return () => {
-          ac.close();
+            if (ac.state === 'running') {
+                ac.close();
+              }
         };
       }, []);
 
