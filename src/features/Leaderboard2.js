@@ -5,8 +5,6 @@ import { socket } from "../api/socket";
 
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 
-import { allQuestions, allTries, allAccuracy } from "../features/statSlice";
-
 export default function Leaderboard2(){
     const id = useSelector(state => state.game.id);
     const [data, setData] = useState([]);

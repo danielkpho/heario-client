@@ -14,6 +14,7 @@ export default function Profile(){
     const [gamesWon, setGamesWon] = useState(0);
 
     const [data, setData] = useState([]);
+    const [rank, setRank] = useState(0);
     
     const [sortConfig, setSortConfig] = useState({key: null, direction: "ascending"})
     
@@ -55,10 +56,22 @@ export default function Profile(){
             console.log(error);
         });
     }, []);
-    
+
+    useEffect(() => {
+        Axios.post("http://localhost:8000/getRank", {
+            username: username
+        }).then((response) => {
+            localStorage.setItem("rank", response.data.rank);
+            setRank(response.data.rank);
+        }).catch((error) => {
+            console.log(error);
+        });
+    }, []);
+        
     const logout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("username");
+        localStorage.removeItem("rank");
         navigate("/");
     };
 
@@ -85,6 +98,9 @@ export default function Profile(){
                 </Grid>
                 <Grid item>
                     <h2>Games Won: {gamesWon} </h2>
+                </Grid>
+                <Grid item>
+                    <h2>Rank: {rank} </h2>
                 </Grid>
             </Grid>
             <Grid 
