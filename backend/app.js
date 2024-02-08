@@ -105,20 +105,8 @@ app.post('/register', function(req, res) {
                         res.status(500).send({ err: err });
                         console.log(err);
                     } else {
-                        // User successfully added to the database
-                        const token = generateToken(username, 3600);
-        
-                        // After inserting the user, also initialize their rank
-                        db.run("INSERT INTO rank (user_id, rank) VALUES ((SELECT user_id FROM users WHERE username = ?), 1200)", [username], (err, result) => {
-                            if (err) {
-                                res.status(500).send({ err: err });
-                                console.log(err);
-                            } else {
-                                // Both operations completed successfully
-                                res.status(200).send({ message: "User added to database and rank initialized", username, token, rank: 1200});
-                                console.log("User added to database and rank initialized");
-                            }
-                        });
+                        res.status(200).send({ message: "User added to database and rank initialized", username, rank: 1200 });
+                        console.log("User added to database and rank initialized");
                     }
                 });
             });
@@ -288,16 +276,35 @@ app.post('/getGamesPlayed', function(req, res) {
 app.post('/getRank', function(req, res) {
     const username = req.body.username;
 
-    db.get("SELECT rank FROM rank WHERE user_id = (SELECT user_id FROM users WHERE username = ?)", [username], (err, result) => {
+    // Insert a new row with the user's rank or update the existing row if it already exists
+    db.run(`INSERT INTO rank (user_id, rank)
+            VALUES (
+                (SELECT user_id FROM users WHERE username = ?),
+                1200
+            )
+            ON CONFLICT (user_id) DO UPDATE
+            SET rank = COALESCE(rank, 1200)`, [username], (err) => {
         if (err) {
-            res.status(500).send({ err: err.message });
+            res.status(500).send({ err: err });
             console.log(err);
         } else {
-            res.send({ rank: result.rank });
+            // Regardless of whether the row was inserted or updated, retrieve the user's rank
+            db.get("SELECT rank FROM rank WHERE user_id = (SELECT user_id FROM users WHERE username = ?)", [username], (err, result) => {
+                if (err) {
+                    res.status(500).send({ err: err.message });
+                    console.log(err);
+                } else {
+                    // Send the user's rank
+                    const rank = result ? result.rank : 1200;
+                    res.send({ rank });
+                }
+            });
         }
-    }
-    );
+    });
 });
+
+
+
 
 app.post('/updateRank', function(req, res) {
     const username = req.body.username;

@@ -57,16 +57,16 @@ export default function Profile(){
         });
     }, []);
 
-    // useEffect(() => { // doesnt work on registration for not being asynchornous
-    //     Axios.post("http://localhost:8000/getRank", {
-    //         username: username
-    //     }).then((response) => {
-    //         localStorage.setItem("rank", response.data.rank);
-    //         setRank(response.data.rank);
-    //     }).catch((error) => {
-    //         console.log(error);
-    //     });
-    // }, []);
+    useEffect(() => { // doesnt work on registration for not being asynchornous
+        Axios.post("http://localhost:8000/getRank", {
+            username: username
+        }).then((response) => {
+            localStorage.setItem("rank", response.data.rank);
+            setRank(response.data.rank);
+        }).catch((error) => {
+            console.log(error);
+        });
+    }, []);
         
     const logout = () => {
         localStorage.removeItem("token");
