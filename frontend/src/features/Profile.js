@@ -14,7 +14,7 @@ export default function Profile(){
     const [gamesWon, setGamesWon] = useState(0);
 
     const [data, setData] = useState([]);
-    const [rank, setRank] = useState(0);
+    const [rank, setRank] = useState(1200);
     
     const [sortConfig, setSortConfig] = useState({key: null, direction: "ascending"})
     
@@ -57,16 +57,16 @@ export default function Profile(){
         });
     }, []);
 
-    useEffect(() => {
-        Axios.post("http://localhost:8000/getRank", {
-            username: username
-        }).then((response) => {
-            localStorage.setItem("rank", response.data.rank);
-            setRank(response.data.rank);
-        }).catch((error) => {
-            console.log(error);
-        });
-    }, []);
+    // useEffect(() => { // doesnt work on registration for not being asynchornous
+    //     Axios.post("http://localhost:8000/getRank", {
+    //         username: username
+    //     }).then((response) => {
+    //         localStorage.setItem("rank", response.data.rank);
+    //         setRank(response.data.rank);
+    //     }).catch((error) => {
+    //         console.log(error);
+    //     });
+    // }, []);
         
     const logout = () => {
         localStorage.removeItem("token");

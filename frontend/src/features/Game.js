@@ -165,8 +165,6 @@ export default function Game(){
                 if (socket.id === hostId){
                     socket.emit("gameEnded", { roomId: id })
                 }
-                // get new rank;
-                    
             }
         });
         return () => {
