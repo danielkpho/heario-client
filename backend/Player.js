@@ -1,7 +1,8 @@
 class Player {
-    constructor(id, name){
+    constructor(id, name, rank){
         this.id = id;
         this.name = name;
+        this.rank = rank;       
         this.score = 0;
         this.data = [];
     }
@@ -25,12 +26,6 @@ class Player {
     }
     resetScore(){
         this.score = 0;
-    }
-    resetTries(){
-        this.tries = 0;
-    }
-    resetAccuracy(){
-        this.accuracy = 0;
     }
 }
 

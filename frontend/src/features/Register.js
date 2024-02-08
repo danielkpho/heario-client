@@ -13,8 +13,6 @@ export default function Register(){
     const [SnackbarOpen, setSnackbarOpen] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
 
-    const token = localStorage.getItem("token");
-
     const navigate = useNavigate();
     const storedUsername = localStorage.getItem("username");
 
@@ -28,24 +26,21 @@ export default function Register(){
             setSnackbarOpen(true);
             return;
         }
-        console.log('Username: ', username, 'Password: ', password);
-
         Axios.post("http://localhost:8000/register", {
             username: username,
             password: password,
         }).then((response) => {
-            console.log(response);
-
             if (response.data.message === "User already exists!"){
                 setAlertMessage("User already exists");
                 setSnackbarOpen(true);
             } else {
-                localStorage.setItem("token", response.data.token);
                 localStorage.setItem("username", response.data.username);
+                localStorage.setItem("rank", response.data.rank);
             }
         }).catch((error) => {
             console.log(error);
         });
+        navigate("/profile")
     };
 
     const login = () => {
@@ -63,16 +58,14 @@ export default function Register(){
                 setAlertMessage(response.data.message);
                 setSnackbarOpen(true);
             } else {
-                localStorage.setItem("token", response.data.token);
                 localStorage.setItem("username", response.data.username);
+                localStorage.setItem("rank", response.data.rank);
                 navigate("/")
             }
         }).catch((error) => {
             console.log(error);
         });
     }
-
-    console.log("Register rendered")
 
     return(
 

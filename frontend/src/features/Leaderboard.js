@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import { Grid, Paper, Typography } from '@mui/material';
-import Axios from "axios";
 import { newWinner } from "../features/statSlice";
 
 export default function Leaderboard(){

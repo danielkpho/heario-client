@@ -1,7 +1,7 @@
 const Player = require('./Player.js');
 const { tonal } = require('tonal');
 const NoteQuestion = require('./noteQuestion.js');
-
+const { calculateElo } = require('./Elo.js');
 class Room {
     constructor(id, hostId, roundSettings){
         this.id = id;
@@ -29,14 +29,21 @@ class Room {
             callback();
         }
     }
+    calculateNewRating(){
+        const players = this.getAllPlayers();
+        const updatedPlayers = calculateElo(players);
+        this.players = updatedPlayers;
+        return updatedPlayers;
+    }
     getRoundSettings(){
         return this.roundSettings;
     }
     setTypesSelected(types){
         this.typesSelected = types;
     }
-    addPlayer(id, name){
-        this.players[id] = new Player(id, name);
+    addPlayer(id, name, rank){
+        this.players[id] = new Player(id, name, rank);
+        console.log(this.players);
     }
     countPlayers(){
         this.playerCount = Object.keys(this.players).length;
@@ -50,6 +57,7 @@ class Room {
         return this.players[id];
     }
     getAllPlayers(){
+        console.log(this.players)
         return this.players;
     }
     async newQuestion() {
@@ -99,7 +107,7 @@ class Room {
         this.players[playerId].setScore(score);
         console.log(`Player ID: ${playerId}, Score: ${score}`);
     }
-    getScores(){
+    getScores(){ // redundant becaues of setScore
         const scores = [];
         for (let player in this.players){
             let id = this.players[player].getId();
@@ -107,7 +115,6 @@ class Room {
             let score = this.players[player].getScore();
             scores.push({id, name, score});
         }
-        console.log(scores);
         scores.sort((a, b) => (a.score < b.score) ? 1 : -1);
         return scores;
     }
@@ -119,9 +126,8 @@ class Room {
         for (let player in this.players){
             let name = this.players[player].getName();
             let playerdata = this.players[player].getData();
-            data.push({ name, playerdata});
+            data.push({ name, playerdata });
         }
-        console.log(JSON.stringify(data));
         return data;
     }
     removePlayer(id){

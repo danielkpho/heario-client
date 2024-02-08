@@ -148,7 +148,7 @@ export default function Game(){
     }
         
 
-    useEffect(() => {
+    useEffect(() => { // rendering twice
         socket.on("nextRound", () => {
             console.log("roundCount: " + roundCount);
             if(roundCount < roundSettings.rounds){
@@ -162,6 +162,11 @@ export default function Game(){
             } else {
                 dispatch(setIsGameOver(true));
                 dispatch(setStatus("Leaderboard"));
+                if (socket.id === hostId){
+                    socket.emit("gameEnded", { roomId: id })
+                }
+                // get new rank;
+                    
             }
         });
         return () => {
@@ -185,7 +190,7 @@ export default function Game(){
         setShowBackdrop(false);
     }
 
-    function handleLeave(){
+    function handleLeave(){ // problem with rendering twice so it is here
         if (username === winner){ 
             Axios.post("http://localhost:8000/incrementGamesWon", {
                 username,
@@ -196,6 +201,13 @@ export default function Game(){
                 console.log(error);
             });
         }
+        Axios.post("http://localhost:8000/getRank", { // async problem
+                username: username
+            }).then((response) => {
+                localStorage.setItem("rank", response.data.rank);
+            }).catch((error) => {
+                console.log(error);
+        });
         socket.emit("leaveRoom", { roomId: id });
         dispatch(resetState());
         dispatch(resetStats())
@@ -212,6 +224,13 @@ export default function Game(){
                 console.log(error);
             });
         }
+        Axios.post("http://localhost:8000/getRank", {
+                username: username
+            }).then((response) => {
+                localStorage.setItem("rank", response.data.rank);
+            }).catch((error) => {
+                console.log(error);
+            });
         socket.emit("resetGame", { roomId: id });
         dispatch(resetGame());
         dispatch(resetStats());

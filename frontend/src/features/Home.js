@@ -21,6 +21,7 @@ export default function Home(){
     const joinedLobby = useSelector(state => state.game.joinedLobby);
     
     const username = localStorage.getItem("username");
+    const rank = parseInt(localStorage.getItem("rank"));
 
     useEffect(() => {
         if (username) {
@@ -30,6 +31,7 @@ export default function Home(){
     , [username]);
     
     useEffect(() => {
+        console.log("getting rooms")
         socket.emit("getRooms");
     }, []);
 
@@ -43,13 +45,12 @@ export default function Home(){
           socket.off("rooms");
         };
       }, []);
-
     
 
     function createGame(){
         const roomId = nanoid(4);
             if (name) {
-                socket.emit("createRoom", { id: roomId, roundSettings: {rounds: 3, time: 10, piano: 0, notes: true, sharps: false, intervals: false, scales: false, chords: false}, name })
+                socket.emit("createRoom", { id: roomId, roundSettings: {rounds: 3, time: 10, piano: 0, notes: true, sharps: false, intervals: false, scales: false, chords: false}, name, rank })
                 dispatch(setId(roomId));
                 dispatch(setHostId(socket.id));
                 dispatch(setJoinedLobby(true));
@@ -87,7 +88,7 @@ export default function Home(){
     function joinGame(){
         console.log(isRoomJoinable(roomId));
         if (isRoomJoinable(roomId) && name) {
-                socket.emit("joinRoom", { id: roomId, name });
+                socket.emit("joinRoom", { id: roomId, name, rank });
                 dispatch(setId(roomId));
                 dispatch(setJoinedLobby(true));
         }
@@ -122,7 +123,7 @@ export default function Home(){
         }
         const randomRoomId = availableRooms[Math.floor(Math.random() * availableRooms.length)].id;
         if(name){
-            socket.emit("joinRoom", { id: randomRoomId, name });
+            socket.emit("joinRoom", { id: randomRoomId, name, rank });
             dispatch(setId(randomRoomId));
             dispatch(setJoinedLobby(true));
         }
