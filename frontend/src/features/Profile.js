@@ -36,6 +36,7 @@ export default function Profile(){
       };
 
     useEffect(() => {
+        console.log("getting games played" + username);
         Axios.post("http://localhost:8000/getGamesPlayed", {
             username: username,
         }).then((response) => {

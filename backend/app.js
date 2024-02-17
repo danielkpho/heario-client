@@ -23,9 +23,9 @@ app.use(express.json());
 
 const io = socketio(expressServer, {
     cors: {
-        // origin: ['http://localhost:3000', 'http://localhost:8000'],
-        origin: ['https://heario-client-54bae534a8b4.herokuapp.com',
-    'https://danielkpho.github.io/heario-client'],
+        origin: ['http://localhost:3000', 'http://localhost:8000'],
+    //     origin: ['https://heario-client-54bae534a8b4.herokuapp.com',
+    // 'https://danielkpho.github.io/heario-client'],
         methods: ['GET', 'POST'],
         credentials: true,
     },
@@ -93,6 +93,14 @@ pool.connect()
             FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
         )
         `);
+
+        await client.query(`
+        CREATE TABLE IF NOT EXISTS rank (
+            user_id INTEGER PRIMARY KEY,
+            rank INT,
+            FOREIGN KEY (user_id) REFERENCES users(user_id)
+        );
+        `)
     
         console.log('Tables created successfully');
     
@@ -272,7 +280,6 @@ app.post('/incrementGamesWon', async (req, res) => {
 
 app.post('/getGamesPlayed', async (req, res) => {
     const username = req.body.username;
-
     try {
         // Upsert (INSERT or UPDATE) the user's data into games_played
         await pool.query(`
@@ -307,7 +314,10 @@ app.post('/getGamesPlayed', async (req, res) => {
 
 app.post('/updateAttempts', async (req, res) => {
     const username = req.body.username;
-    const newRank = req.body.newRank;
+    const questionType = req.body.questionType; // Make sure this is the correct property name
+    const question = req.body.question; // Make sure this is the correct property name
+    const correctAttempts = req.body.correctAttempts; // Make sure this is the correct property name
+    const totalAttempts = req.body.totalAttempts; // Make sure this is the correct property name
 
     try {
         // Using an upsert (INSERT ON CONFLICT UPDATE) to either update or insert a new row
@@ -414,7 +424,55 @@ app.post('/getAttempts', async (req, res) => {
     }
 });
 
+app.post('/getRank', async function(req, res) {
+    const username = req.body.username;
 
+    try {
+        // Insert a new row with the user's rank or update the existing row if it already exists
+        await pool.query(`
+            INSERT INTO rank (user_id, rank)
+            VALUES (
+                (SELECT user_id FROM users WHERE username = $1),
+                1200
+            )
+            ON CONFLICT (user_id) DO UPDATE
+            SET rank = EXCLUDED.rank
+        `, [username]);
+
+        // Retrieve the user's rank
+        const result = await pool.query("SELECT rank FROM rank WHERE user_id = (SELECT user_id FROM users WHERE username = $1)", [username]);
+        const rank = result.rows[0] ? result.rows[0].rank :  1200;
+
+        // Send the user's rank
+        res.send({ rank });
+    } catch (err) {
+        res.status(500).send({ err: err.message });
+        console.log(err);
+    }
+});
+
+app.post('/updateRank', async function(req, res) {
+    const username = req.body.username;
+    const newRank = req.body.newRank;
+
+    try {
+        await pool.query(`
+            INSERT INTO rank (user_id, rank)
+            VALUES (
+                (SELECT user_id FROM users WHERE username = $1),
+                $2
+            )
+            ON CONFLICT (user_id) DO UPDATE SET
+                rank = EXCLUDED.rank
+        `, [username, newRank]);
+
+        console.log("Rank updated");
+        res.send({ message: "Rank updated" });
+    } catch (err) {
+        res.status(500).send({ err: err.message });
+        console.log(err);
+    }
+});
 
 
 
@@ -587,71 +645,44 @@ io.on('connection', socket => {
             const updatedPlayers = room.calculateNewRating();
     
             // Helper function to get user_id from username
-            const getUserIdFromUsername = (username) => {
-                return new Promise((resolve, reject) => {
-                    const sql = 'SELECT user_id FROM users WHERE username = ?';
-                    db.get(sql, [username], (err, row) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(row ? row.user_id : null);
-                        }
-                    });
-                });
+            const getUserIdFromUsername = async (username) => {
+                const res = await pool.query('SELECT user_id FROM users WHERE username = $1', [username]);
+                return res.rows[0] ? res.rows[0].user_id : null;
             };
     
             // Begin a transaction
-            db.serialize(() => {
-                db.run('BEGIN TRANSACTION', (err) => {
-                    if (err) {
-                        console.error('Failed to begin transaction:', err);
-                        return;
-                    }
+            const client = await pool.connect();
+            try {
+                await client.query('BEGIN');
     
-                    // Execute the SQL UPDATE statements
-                    const updatePromises = Object.values(updatedPlayers).map(async (player) => {
-                        try {
-                            const user_id = await getUserIdFromUsername(player.name);
-                            if (!user_id) {
-                                throw new Error(`No user found with username ${player.name}`);
-                            }
-                            const sql = `UPDATE rank SET rank = ? WHERE user_id = ?`;
-                            return new Promise((resolve, reject) => {
-                                db.run(sql, [player.rank, user_id], (err) => {
-                                    if (err) {
-                                        console.error(`Failed to update rank for player ${player.name}:`, err);
-                                        db.run('ROLLBACK', () => {
-                                            reject(err);
-                                        });
-                                    } else {
-                                        resolve();
-                                    }
-                                });
-                            });
-                        } catch (err) {
-                            console.error(`Error updating rank for player ${player.name}:`, err);
-                            throw err; // Propagate the error to the Promise.all() handler
+                // Execute the SQL UPDATE statements
+                const updatePromises = Object.values(updatedPlayers).map(async (player) => {
+                    try {
+                        const user_id = await getUserIdFromUsername(player.name);
+                        if (!user_id) {
+                            throw new Error(`No user found with username ${player.name}`);
                         }
-                    });
-    
-                    // Wait for all updates to finish
-                    Promise.all(updatePromises)
-                        .then(() => {
-                            // Commit the transaction if all updates were successful
-                            db.run('COMMIT', (err) => {
-                                if (err) {
-                                    console.error('Failed to commit transaction:', err);
-                                } else {
-                                    console.log('Transaction committed successfully.');
-                                }
-                            });
-                        })
-                        .catch((err) => {
-                            // Handle the error (transaction was already rolled back)
-                            console.error('An error occurred during the transaction:', err);
-                        });
+                        const sql = 'UPDATE rank SET rank = $1 WHERE user_id = $2';
+                        await client.query(sql, [player.rank, user_id]);
+                    } catch (err) {
+                        console.error(`Error updating rank for player ${player.name}:`, err);
+                        throw err; // Propagate the error to the Promise.all() handler
+                    }
                 });
-            });
+    
+                // Wait for all updates to finish
+                await Promise.all(updatePromises);
+    
+                // Commit the transaction if all updates were successful
+                await client.query('COMMIT');
+                console.log('Transaction committed successfully.');
+            } catch (err) {
+                // Handle the error (transaction was already rolled back)
+                await client.query('ROLLBACK');
+                console.error('An error occurred during the transaction:', err);
+            } finally {
+                client.release();
+            }
         }
     });
     
