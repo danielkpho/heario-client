@@ -4,11 +4,13 @@ import { socket } from "../api/socket";
 import { useDispatch, useSelector } from "react-redux";
 
 import { instrument as soundfontInstrument } from "soundfont-player";
+import SoundfontProvider from "./Piano/SoundfontProvider.js";
 
-import { setIsStarted, resetState, setScores, incrementRound, incrementQuestion, resetGame, setIsRoundOver, setIsGameOver, selectTimer, setStatus } from "./gameSlice";
-import { newQuestion, resetStats, allQuestions, allTries, allAccuracy } from "./statSlice.js"
+import { resetState, setScores, incrementRound, incrementQuestion, resetGame, setIsRoundOver, setIsGameOver, selectTimer, setStatus } from "./gameSlice";
+import { newQuestion, resetStats } from "./statSlice.js"
 import { setAnswers, setQuestionType, setTone, setCorrectAnswer, correctAns, currentTone } from "./questionsSlice";
 
+import { getAudioContextInstance } from "./audioContextSingleton.js";
 
 import Timer from "./Timer";
 import Leaderboard from "./Leaderboard";
@@ -116,6 +118,8 @@ export default function Game(){
     }, [dispatch]);
 
     async function handlePlayNote() {
+        console.log("isPianoReady: " + isPianoReady)
+        console.log("piano: " + JSON.stringify(piano))
         if (piano) {
             try { 
                 if (Array.isArray(tone)) {
@@ -246,126 +250,127 @@ export default function Game(){
 
     return (
         <div>
-            {!isGameOver && (
                 <div>
-                {!isPianoReady && (
-                    <p>loading piano...</p>
-                )}
-                {isPianoReady && (
-                <div>
-                    <div>
-                    <button onClick={() => restartGame()}>End Game</button>
-                    <button onClick={() => nextRound()}>Next Round</button>
-                    </div>
-                    <Grid container justifyContent="center" alignItems="center" spacing={2}>
-                        <Grid item>
-                            <Button 
-                                variant="contained"
-                                color="secondary"
-                                startIcon={<VolumeUp />}
-                                onClick={() => handlePlayNote()}
-                                style={{ width: 200 }}
-                            > 
-                                Play Note
-                                </Button>
-                        </Grid>
-                    </Grid>
-                    <Grid container justifyContent="center" alignItems="center" spacing={2} padding={2}>
-                        <Grid item>
-                            {!roundOver && (
+                    {!isGameOver && (
+                        <div>
+                        {!isPianoReady && (
+                            <p>loading piano...</p>
+                        )}
+                        {isPianoReady && (
+                        <div>
                             <div>
-                                <div>
-                                {isPiano() && (
-                                    <Suspense fallback={<div>Loading...</div>}>
-                                    {/* Use LazyReactPiano instead of ReactPiano */}
-                                    <LazyReactPiano />
-                                    </Suspense>
+                            <button onClick={() => restartGame()}>End Game</button>
+                            <button onClick={() => nextRound()}>Next Round</button>
+                            </div>
+                            <Grid container justifyContent="center" alignItems="center" spacing={2}>
+                                <Grid item>
+                                    <Button 
+                                        variant="contained"
+                                        color="secondary"
+                                        startIcon={<VolumeUp />}
+                                        onClick={() => handlePlayNote()}
+                                        style={{ width: 200 }}
+                                    > 
+                                        Play Note
+                                        </Button>
+                                </Grid>
+                            </Grid>
+                            <Grid container justifyContent="center" alignItems="center" spacing={2} padding={2}>
+                                <Grid item>
+                                    {!roundOver && (
+                                    <div>
+                                        <div>
+                                        {isPiano() && (
+                                            <Suspense fallback={<div>Loading...</div>}>
+                                            {/* Use LazyReactPiano instead of ReactPiano */}
+                                            <LazyReactPiano />
+                                            </Suspense>
+                                        )}
+                                        </div>
+                                        <div>
+                                            <TonesAnswerButton />
+                                        </div>
+                                    </div>           
+                                    )}
+                                </Grid>
+                            </Grid>
+                            <div>
+                                {roundOver && (
+                                    <div>
+                                        <div>
+                                            <Leaderboard />
+                                            <Leaderboard2 />
+                                        </div>
+                                        <div>
+                                            <p>The correct answer was {correctAnswer}</p>
+                                        </div>
+                                    </div>
                                 )}
-                                </div>
+                                
                                 <div>
-                                    <TonesAnswerButton />
-                                </div>
-                            </div>           
-                            )}
-                        </Grid>
-                    </Grid>
-                    <div>
-                        {roundOver && (
-                            <div>
-                                <div>
-                                    <Leaderboard />
-                                    <Leaderboard2 />
-                                </div>
-                                <div>
-                                    <p>The correct answer was {correctAnswer}</p>
+                                    <Timer />
                                 </div>
                             </div>
-                        )}
-                        
-                        <div>
-                            <Timer />
                         </div>
-                    </div>
-                </div>
-                )}
-            </div>
-            )}
-            {isGameOver && (
-                <Grid 
-                    container
-                    direction={"column"}
-                >
-                    <Grid item>
-                        <Leaderboard />
-                    </Grid>
-                    <Grid 
-                    container 
-                    direction={"row"} 
-                    justifyContent={"center"} 
-                    alignItems={"center"} 
-                    spacing={2}
-                    padding={3}
-                    >
-                        <Grid item>
-                            <Button
-                                variant="contained"
-                                color="error"
-                                onClick={() => handleLeave()}
+                        )}
+                        </div>
+                        )}
+                        {isGameOver && (
+                        <Grid 
+                            container
+                            direction={"column"}
+                        >
+                            <Grid item>
+                                <Leaderboard />
+                            </Grid>
+                            <Grid 
+                            container 
+                            direction={"row"} 
+                            justifyContent={"center"} 
+                            alignItems={"center"} 
+                            spacing={2}
+                            padding={3}
                             >
-                                Leave Lobby
-                            </Button>
-                        </Grid>
-                        <Grid item>
-                            <Button
-                                variant="contained"
-                                color="info"
-                                onClick={() => handleOpen()}
-                            >
-                                Statistics
-                            </Button>
-                            <Backdrop
-                                sx= {{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
-                                open={showBackdrop}
-                                onClick={handleClose}
-                            >
-                                <Statistics />
-                            </Backdrop>
-                        </Grid>
-                    {isHost && (
-                        <Grid item>
-                            <Button
-                                variant="contained"
-                                color="info"
-                                onClick={() => restartGame()}
-                            >
-                                Reset Game
-                            </Button>
+                                <Grid item>
+                                    <Button
+                                        variant="contained"
+                                        color="error"
+                                        onClick={() => handleLeave()}
+                                    >
+                                        Leave Lobby
+                                    </Button>
+                                </Grid>
+                                <Grid item>
+                                    <Button
+                                        variant="contained"
+                                        color="info"
+                                        onClick={() => handleOpen()}
+                                    >
+                                        Statistics
+                                    </Button>
+                                    <Backdrop
+                                        sx= {{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                                        open={showBackdrop}
+                                        onClick={handleClose}
+                                    >
+                                        <Statistics />
+                                    </Backdrop>
+                                </Grid>
+                            {isHost && (
+                                <Grid item>
+                                    <Button
+                                        variant="contained"
+                                        color="info"
+                                        onClick={() => restartGame()}
+                                    >
+                                        Reset Game
+                                    </Button>
+                                </Grid>
+                            )}
+                            </Grid>
                         </Grid>
                     )}
-                    
-                    </Grid>
-                </Grid>
-            )}
+                </div>
         </div>
-            );
+    );
 }

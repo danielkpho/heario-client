@@ -13,7 +13,6 @@ export default function Leaderboard(){
     const username = localStorage.getItem("username");
     const dispatch = useDispatch();
 
-    console.log("leaderboard rendered");
     // useEffect(() => {
     //     if (username === firstPlace.name) {
     //         Axios.post("http://localhost:8000/incrementGamesWon", { 
