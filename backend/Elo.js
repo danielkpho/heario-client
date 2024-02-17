@@ -7,8 +7,7 @@ function calculateElo(players, kFactor =  32) {
 
     // Helper function to calculate the new rating
     const newRating = (player, i) => {
-        let ratingChange =   0;
-        console.log("player rank: ", player.rank, "rating change: ", ratingChange, "new rank: ", player.rank + ratingChange)
+        let ratingChange = 0;
         for (let j = 0; j < sortedPlayers.length; j++) {
             if (i !== j) {
                 const opponent = sortedPlayers[j];
