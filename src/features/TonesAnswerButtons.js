@@ -99,6 +99,7 @@ function TonesAnswerButton(){
     });
 
     function updateAttempts(correct){
+        console.log("update attempts" + questionType);
         Axios.post("http://localhost:8000/updateAttempts", {
             username: username,
             questionType: questionType,

@@ -36,11 +36,11 @@ export default function Register(){
             } else {
                 localStorage.setItem("username", response.data.username);
                 localStorage.setItem("rank", response.data.rank);
+                navigate("/profile")
             }
         }).catch((error) => {
             console.log(error);
         });
-        navigate("/profile")
     };
 
     const login = () => {
