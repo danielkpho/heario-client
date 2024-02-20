@@ -23,9 +23,9 @@ app.use(express.json());
 
 const io = socketio(expressServer, {
     cors: {
-        origin: ['http://localhost:3000', 'http://localhost:8000'],
-    //     origin: ['https://heario-client-54bae534a8b4.herokuapp.com',
-    // 'https://danielkpho.github.io/heario-client'],
+        // origin: ['http://localhost:3000', 'http://localhost:8000'],
+        origin: ['https://heario-client-54bae534a8b4.herokuapp.com',
+    'https://danielkpho.github.io/heario-client'],
         methods: ['GET', 'POST'],
         credentials: true,
     },
