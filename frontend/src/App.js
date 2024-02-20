@@ -94,7 +94,7 @@ function App() {
     </Grid>
       <BrowserRouter>
         <Routes>
-        <Route path="/" exact element={<div><Home /></div>} />
+        <Route path="/heario-client/" exact element={<div><Home /></div>} />
           <Route path="/register" exact element= {<Register/>} />
           <Route path ="/profile" exact element= {<Profile/>} />
           <Route path = "/piano" exact element= {<ReactPiano/>} />
