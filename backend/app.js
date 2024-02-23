@@ -40,9 +40,9 @@ const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:post
 
 const pool = new Pool({
     connectionString: connectionString,
-    // ssl: {
-    //     rejectUnauthorized: false, // Accept any SSL certificate (not recommended for production)
-    //   }
+    ssl: {
+        rejectUnauthorized: false, // Accept any SSL certificate (not recommended for production)
+      }
 });
 
 pool.connect()
