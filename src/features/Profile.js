@@ -73,7 +73,7 @@ export default function Profile(){
         localStorage.removeItem("token");
         localStorage.removeItem("username");
         localStorage.removeItem("rank");
-        navigate("/");
+        navigate("/heario-client/");
     };
 
     return (
@@ -159,7 +159,7 @@ export default function Profile(){
                 alignItems={"center"}
                 >
                     <Grid item>
-                        <Button variant="contained" onClick={() => navigate("/")}>Back</Button>
+                        <Button variant="contained" onClick={() => navigate("/heario-client/")}>Back</Button>
                     </Grid>
                     <Grid item>
                         <Button color="error" variant="contained" onClick={logout}>Logout</Button>
