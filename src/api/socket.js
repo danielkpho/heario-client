@@ -7,6 +7,7 @@ export const socket = io('https://heario-13b5b094cc85.herokuapp.com', {
     withCredentials: true,
 });
 
+
 socket.on('connect', () => { 
     console.log('connected to server');
 });

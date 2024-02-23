@@ -194,7 +194,7 @@ export default function Game(){
 
     function handleLeave(){ // problem with rendering twice so it is here
         if (username === winner){ 
-            Axios.post("http://localhost:8000/incrementGamesWon", {
+            Axios.post("https://heario-13b5b094cc85.herokuapp.com/incrementGamesWon", {
                 username,
             } , {
             }).then((response) => {
@@ -203,7 +203,7 @@ export default function Game(){
                 console.log(error);
             });
         }
-        Axios.post("http://localhost:8000/getRank", { // async problem
+        Axios.post("https://heario-13b5b094cc85.herokuapp.com/getRank", { // async problem
                 username: username
             }).then((response) => {
                 localStorage.setItem("rank", response.data.rank);
@@ -217,7 +217,7 @@ export default function Game(){
 
     function restartGame(){
         if (username === winner){ 
-            Axios.post("http://localhost:8000/incrementGamesWon", {
+            Axios.post("https://heario-13b5b094cc85.herokuapp.com/incrementGamesWon", {
                 username,
             } , {
             }).then((response) => {
@@ -226,7 +226,7 @@ export default function Game(){
                 console.log(error);
             });
         }
-        Axios.post("http://localhost:8000/getRank", {
+        Axios.post("https://heario-13b5b094cc85.herokuapp.com/getRank", {
                 username: username
             }).then((response) => {
                 localStorage.setItem("rank", response.data.rank);

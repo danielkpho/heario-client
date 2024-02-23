@@ -100,7 +100,7 @@ function TonesAnswerButton(){
 
     function updateAttempts(correct){
         console.log("update attempts" + questionType);
-        Axios.post("http://localhost:8000/updateAttempts", {
+        Axios.post("https://heario-13b5b094cc85.herokuapp.com/updateAttempts", {
             username: username,
             questionType: questionType,
             question: correctAnswer,

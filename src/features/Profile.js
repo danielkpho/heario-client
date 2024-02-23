@@ -37,7 +37,7 @@ export default function Profile(){
 
     useEffect(() => {
         console.log("getting games played" + username);
-        Axios.post("http://localhost:8000/getGamesPlayed", {
+        Axios.post("https://heario-13b5b094cc85.herokuapp.com/getGamesPlayed", {
             username: username,
         }).then((response) => {
             setGamesPlayed(response.data.gamesPlayed);
@@ -48,7 +48,7 @@ export default function Profile(){
     }, []);
 
     useEffect(() => {
-        Axios.post("http://localhost:8000/getAttempts", {
+        Axios.post("https://heario-13b5b094cc85.herokuapp.com/getAttempts", {
             username: username
         }).then((response) => {
             console.log(response.data.result);
@@ -59,7 +59,7 @@ export default function Profile(){
     }, []);
 
     useEffect(() => { // doesnt work on registration for not being asynchornous
-        Axios.post("http://localhost:8000/getRank", {
+        Axios.post("https://heario-13b5b094cc85.herokuapp.com/getRank", {
             username: username
         }).then((response) => {
             localStorage.setItem("rank", response.data.rank);
