@@ -86,7 +86,7 @@ function App() {
       >
       <Grid item color='warning.main'>
         <Typography variant="h2" color="green" align="center">
-          <Link href="/" underline="none" color="inherit">
+          <Link href="/heario-client/" underline="none" color="inherit">
             HEAR.IO
           </Link>
         </Typography>

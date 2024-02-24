@@ -23,6 +23,8 @@ function TonesAnswerButton(){
     const answers = useSelector(allAnswers);
     const correctAnswer = useSelector(correctAns);
     const questionType = useSelector(state => state.questions.questionType);
+    
+    const token = localStorage.getItem("token");
 
     const answerButtons = answers.map((r, index) => (
         <Grid key = {index} item xs = {"6"}>
@@ -98,21 +100,24 @@ function TonesAnswerButton(){
         });
     });
 
-    function updateAttempts(correct){
-        console.log("update attempts" + questionType);
+    function updateAttempts(correct) {    
+        // Include the token in the Authorization header
         Axios.post("http://localhost:8000/updateAttempts", {
-            username: username,
             questionType: questionType,
             question: correctAnswer,
             correctAttempts: correct,
-            totalAttempts: attempts + 1,
+            totalAttempts: attempts +  1,
+        }, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         }).then((response) => {
             console.log(response);
         }).catch((error) => {
             console.log(error);
-        }
-        );
+        });
     }
+    
     
 
     return (

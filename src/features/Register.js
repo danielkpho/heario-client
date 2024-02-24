@@ -14,7 +14,6 @@ export default function Register(){
     const [alertMessage, setAlertMessage] = useState('');
 
     const navigate = useNavigate();
-    const storedUsername = localStorage.getItem("username");
 
     const handleSnackbarClose = () => {
         setSnackbarOpen(false);
@@ -36,6 +35,7 @@ export default function Register(){
             } else {
                 localStorage.setItem("username", response.data.username);
                 localStorage.setItem("rank", response.data.rank);
+                localStorage.setItem("token", response.data.token);
                 navigate("/profile")
             }
         }).catch((error) => {
@@ -60,6 +60,7 @@ export default function Register(){
             } else {
                 localStorage.setItem("username", response.data.username);
                 localStorage.setItem("rank", response.data.rank);
+                localStorage.setItem("token", response.data.token);
                 navigate("/")
             }
         }).catch((error) => {
