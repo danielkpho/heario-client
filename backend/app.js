@@ -5,13 +5,41 @@ const socketio = require('socket.io');
 const cors = require('cors');
 const PORT = process.env.PORT || 8000; // port to run server on
 
-// require('dotenv').config();
-// const secretKey = process.env.HEARIO_SECRET_KEY;
+require('dotenv').config();
+const secretKey = process.env.HEARIO_SECRET_KEY;
 
 // console.log(secretKey);
-// const crypto = require('crypto');
+const crypto = require('crypto');
 
+function generateToken(username, expirationInSeconds) {
+    const payload = {
+        username,
+        exp: Math.floor(Date.now() /  1000) + expirationInSeconds,
+    };
 
+    // Use a secure algorithm and the secret key for signing
+    return jwt.sign(payload, secretKey, { algorithm: 'HS256' });
+}
+
+function verifyToken(req, res, next) {
+    const token = req.headers.authorization?.split(' ')[1]; // Assuming the token is sent as 'Bearer <token>'
+    
+    if (!token) {
+        res.status(401).send({ message: "No token provided" });
+        return;
+    }
+
+    jwt.verify(token, secretKey, { algorithms: ['HS256'] }, (err, payload) => {
+        if (err) {
+            res.status(401).send({ message: "Invalid token" });
+            console.error(err); // Use console.error for errors
+            return;
+        }
+
+        req.username = payload.username;
+        next();
+    });
+}
 
 const app = express();
 const expressServer = app.listen(PORT, () => // start server on port 8000
@@ -23,9 +51,9 @@ app.use(express.json());
 
 const io = socketio(expressServer, {
     cors: {
-        // origin: ['http://localhost:3000', 'http://localhost:8000'],
-        origin: ['https://heario-client-54bae534a8b4.herokuapp.com',
-    'https://danielkpho.github.io'],
+        origin: ['http://localhost:3000', 'http://localhost:8000'],
+    //     origin: ['https://heario-client-54bae534a8b4.herokuapp.com',
+    // 'https://danielkpho.github.io'],
         methods: ['GET', 'POST'],
         credentials: true,
     },
@@ -40,9 +68,9 @@ const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:post
 
 const pool = new Pool({
     connectionString: connectionString,
-    ssl: {
-        rejectUnauthorized: false, // Accept any SSL certificate (not recommended for production)
-      }
+    // ssl: {
+    //     rejectUnauthorized: false, // Accept any SSL certificate (not recommended for production)
+    //   }
 });
 
 pool.connect()
@@ -172,12 +200,6 @@ app.post('/register', async (req, res) => {
             // If the user doesn't exist, insert the new user
             const result = await pool.query('INSERT INTO users (username, password) VALUES ($1, $2) RETURNING user_id', [username, password]);
 
-            // Get the inserted user_id
-            const userId = result.rows[0].user_id;
-
-            // Optionally, you can initialize the games_played table for the new user
-            // await pool.query('INSERT INTO games_played (user_id, total_games_played, games_won) VALUES ($1, 0, 0)', [userId]);
-
             // User successfully added to the database
             const token = generateToken(username, 3600);
             res.status(200).send({ message: "User added to database", username, token });
@@ -199,27 +221,8 @@ app.post('/login', async (req, res) => {
         const result = await pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
 
         if (result.rows.length > 0) {
-            const user_id = result.rows[0].user_id;
-
-            // Check if there is an existing token for the user
-            const existingTokenResult = await pool.query('SELECT token FROM user_tokens WHERE user_id = $1', [user_id]);
-
-            if (existingTokenResult.rows.length > 0) {
-                // If token exists, use the existing one
-                const existingToken = existingTokenResult.rows[0].token;
-                console.log("Using existing token for user:", username);
-                res.send({ username, token: existingToken });
-            } else {
-                // Generate a new token
-                const token = generateToken(username, 3600);
-
-                // Insert the new token into the database
-                await pool.query('INSERT INTO user_tokens (user_id, token) VALUES ($1, $2)', [user_id, token]);
-
-                console.log("User logged in");
-                console.log("New token added to the database for user:", username);
-                res.send({ username, token });
-            }
+            const token = generateToken(username, 3600);
+            res.send({ username, token });
         } else {
             res.send({ message: "Wrong username/password combination!" });
         }
@@ -230,8 +233,8 @@ app.post('/login', async (req, res) => {
 });
 
 // app.post('/incrementGamesPlayed', verifyToken, function(req, res) {
-app.post('/incrementGamesPlayed', async (req, res) => {
-    const username = req.body.username;
+app.post('/incrementGamesPlayed', verifyToken, async (req, res) => {
+    const username = req.username;
 
     try {
         // Increment games played using an upsert (INSERT ON CONFLICT UPDATE)
@@ -254,8 +257,8 @@ app.post('/incrementGamesPlayed', async (req, res) => {
     }
 });
 
-app.post('/incrementGamesWon', async (req, res) => {
-    const username = req.body.username;
+app.post('/incrementGamesWon', verifyToken, async (req, res) => {
+    const username = req.username;
 
     try {
         // Increment games won using an upsert (INSERT ON CONFLICT UPDATE)
@@ -278,8 +281,8 @@ app.post('/incrementGamesWon', async (req, res) => {
     }
 });
 
-app.post('/getGamesPlayed', async (req, res) => {
-    const username = req.body.username;
+app.post('/getGamesPlayed', verifyToken, async (req, res) => {
+    const username = req.username;
     try {
         // Upsert (INSERT or UPDATE) the user's data into games_played
         await pool.query(`
@@ -312,8 +315,8 @@ app.post('/getGamesPlayed', async (req, res) => {
 });
 
 
-app.post('/updateAttempts', async (req, res) => {
-    const username = req.body.username;
+app.post('/updateAttempts', verifyToken, async (req, res) => {
+    const username = req.username;
     const questionType = req.body.questionType; // Make sure this is the correct property name
     const question = req.body.question; // Make sure this is the correct property name
     const correctAttempts = req.body.correctAttempts; // Make sure this is the correct property name
@@ -343,71 +346,8 @@ app.post('/updateAttempts', async (req, res) => {
     }
 });
 
-
-
-app.post('/updateAttempts', async (req, res) => {
-    const username = req.body.username;
-    const questionType = req.body.questionType;
-    const question = req.body.question;
-    const correctAttempts = req.body.correctAttempts;
-    const totalAttempts = req.body.totalAttempts;
-
-    try {
-        // Using an upsert (INSERT ON CONFLICT UPDATE) to either update or insert a new row
-        await pool.query(`
-            INSERT INTO user_attempts (user_id, question_type, question, correct_attempts, total_attempts)
-            VALUES (
-                (SELECT user_id FROM users WHERE username = $1),
-                $2,
-                $3,
-                $4,
-                $5
-            )
-            ON CONFLICT (user_id, question_type, question) DO UPDATE SET
-                correct_attempts = user_attempts.correct_attempts + EXCLUDED.correct_attempts,
-                total_attempts = user_attempts.total_attempts + EXCLUDED.total_attempts
-        `, [username, questionType, question, correctAttempts, totalAttempts]);
-
-        console.log("Attempts updated");
-        res.send({ message: "Attempts updated" });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send({ err: err.message });
-    }
-});
-
-function generateToken(username, expirationInSeconds) { // token that contains username and expiration time
-    const payload = {
-        username,
-        exp: Math.floor(Date.now() / 1000) + expirationInSeconds,
-    };
-
-    return jwt.sign(payload, null, { algorithm: 'none' });
-}
-
-function verifyToken(req, res, next) {
-    const token = req.headers.authorization;
-    
-    if (!token) {
-        res.status(401).send({ message: "No token provided" });
-        return;
-    }
-
-    jwt.verify(token, null, { algorithms: ['none'] }, (err, payload) => {
-        if (err) {
-            res.status(401).send({ message: "Invalid token" });
-            console.log(err);
-            console.log(token)
-            return;
-        }
-
-        req.username = payload.username;
-        next();
-    });
-}
-
-app.post('/getAttempts', async (req, res) => {
-    const username = req.body.username;
+app.post('/getAttempts', verifyToken, async (req, res) => {
+    const username = req.username;
 
     try {
         // Retrieve attempts using a parameterized query
@@ -424,8 +364,8 @@ app.post('/getAttempts', async (req, res) => {
     }
 });
 
-app.post('/getRank', async function(req, res) {
-    const username = req.body.username;
+app.post('/getRank', verifyToken, async function(req, res) {
+    const username = req.username;
 
     try {
         // Insert a new row with the user's rank or update the existing row if it already exists
@@ -451,8 +391,8 @@ app.post('/getRank', async function(req, res) {
     }
 });
 
-app.post('/updateRank', async function(req, res) {
-    const username = req.body.username;
+app.post('/updateRank', verifyToken, async function(req, res) {
+    const username = req.username;
     const newRank = req.body.newRank;
 
     try {

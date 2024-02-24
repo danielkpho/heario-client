@@ -42,6 +42,7 @@ export default function Game(){
     const [showBackdrop, setShowBackdrop] = useState(false);
     const username = localStorage.getItem("username");
     const winner = useSelector(state => state.stats.winner);
+    const token = localStorage.getItem("token");
 
     const LazyReactPiano = lazyWithPreload(() => import("./Piano/Piano.js"));
     const [pianoLoaded, setPianoLoaded] = useState(false);
@@ -194,18 +195,21 @@ export default function Game(){
 
     function handleLeave(){ // problem with rendering twice so it is here
         if (username === winner){ 
-            Axios.post("http://localhost:8000/incrementGamesWon", {
-                username,
-            } , {
+            Axios.post("http://localhost:8000/incrementGamesWon", {}, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             }).then((response) => {
                 console.log(response);
             }).catch((error) => {
                 console.log(error);
             });
         }
-        Axios.post("http://localhost:8000/getRank", { // async problem
-                username: username
-            }).then((response) => {
+        Axios.post("http://localhost:8000/getRank", {}, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        }).then((response) => {
                 localStorage.setItem("rank", response.data.rank);
             }).catch((error) => {
                 console.log(error);
@@ -215,29 +219,36 @@ export default function Game(){
         dispatch(resetStats())
     }
 
-    function restartGame(){
-        if (username === winner){ 
-            Axios.post("http://localhost:8000/incrementGamesWon", {
-                username,
-            } , {
+    function restartGame() {    
+        if (username === winner) {
+            // Include the token in the Authorization header for the /incrementGamesWon request
+            Axios.post("http://localhost:8000/incrementGamesWon", {}, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             }).then((response) => {
                 console.log(response);
             }).catch((error) => {
                 console.log(error);
             });
         }
-        Axios.post("http://localhost:8000/getRank", {
-                username: username
-            }).then((response) => {
-                localStorage.setItem("rank", response.data.rank);
-            }).catch((error) => {
-                console.log(error);
-            });
+    
+        // Include the token in the Authorization header for the /getRank request
+        Axios.post("http://localhost:8000/getRank", {}, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        }).then((response) => {
+            localStorage.setItem("rank", response.data.rank);
+        }).catch((error) => {
+            console.log(error);
+        });
+    
         socket.emit("resetGame", { roomId: id });
         dispatch(resetGame());
         dispatch(resetStats());
-    };
-
+    }
+    
     function isPiano(){
         if (roundSettings.piano === 0){
             return false;

@@ -25,6 +25,7 @@ export default function Lobby(){
     const roundCount = useSelector(state => state.game.roundCount);
     const status = useSelector(state => state.game.status);
     const username = localStorage.getItem("username");
+    const token = localStorage.getItem("token");
 
     useEffect(() => {
         const handleBeforeUnload = (event) => {
@@ -55,9 +56,10 @@ export default function Lobby(){
             dispatch(setIsStarted(true));
             dispatch(setStatus("playing"))
             if(username){
-                Axios.post("http://localhost:8000/incrementGamesPlayed", {
-                    username: localStorage.getItem("username"),
-                } , {
+                Axios.post("http://localhost:8000/incrementGamesPlayed", {} , {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
                 }).then((response) => {
                     console.log(response);
                 }).catch((error) => {

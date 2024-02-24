@@ -49,14 +49,14 @@ export default function Home(){
 
     function createGame(){
         const roomId = nanoid(4);
-            if (name) {
+            if (username) {
                 socket.emit("createRoom", { id: roomId, roundSettings: {rounds: 3, time: 10, piano: 0, notes: true, sharps: false, intervals: false, scales: false, chords: false}, name, rank })
                 dispatch(setId(roomId));
                 dispatch(setHostId(socket.id));
                 dispatch(setJoinedLobby(true));
             } 
             else {
-                setAlertMessage("Please enter a name");
+                setAlertMessage("Please register first");
                 setSnackbarOpen(true);
             }
     };
@@ -87,13 +87,17 @@ export default function Home(){
 
     function joinGame(){
         console.log(isRoomJoinable(roomId));
-        if (isRoomJoinable(roomId) && name) {
+        if (isRoomJoinable(roomId) && username) {
                 socket.emit("joinRoom", { id: roomId, name, rank });
                 dispatch(setId(roomId));
                 dispatch(setJoinedLobby(true));
         }
         if (!name) {
             setAlertMessage("Please enter a name");
+            setSnackbarOpen(true);
+        }
+        if (!username){
+            setAlertMessage("Please register first");
             setSnackbarOpen(true);
         }
         if (!doesRoomExist(roomId)) {
@@ -121,8 +125,13 @@ export default function Home(){
             setSnackbarOpen(true);
             return;
         }
+        if (!username){
+            setAlertMessage("Please register first");
+            setSnackbarOpen(true);
+            return;
+        }
         const randomRoomId = availableRooms[Math.floor(Math.random() * availableRooms.length)].id;
-        if(name){
+        if(username){
             socket.emit("joinRoom", { id: randomRoomId, name, rank });
             dispatch(setId(randomRoomId));
             dispatch(setJoinedLobby(true));
