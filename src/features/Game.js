@@ -4,13 +4,11 @@ import { socket } from "../api/socket";
 import { useDispatch, useSelector } from "react-redux";
 
 import { instrument as soundfontInstrument } from "soundfont-player";
-import SoundfontProvider from "./Piano/SoundfontProvider.js";
 
 import { resetState, setScores, incrementRound, incrementQuestion, resetGame, setIsRoundOver, setIsGameOver, selectTimer, setStatus } from "./gameSlice";
 import { newQuestion, resetStats } from "./statSlice.js"
 import { setAnswers, setQuestionType, setTone, setCorrectAnswer, correctAns, currentTone } from "./questionsSlice";
 
-import { getAudioContextInstance } from "./audioContextSingleton.js";
 
 import Timer from "./Timer";
 import Leaderboard from "./Leaderboard";
@@ -68,7 +66,7 @@ export default function Game(){
             setPiano(acoustic_grand_piano);
             console.log("piano is ready");
             setIsPianoReady(true);
-            console.log("ac state: " + ac.state);
+            // console.log("ac state: " + ac.state);
           });
     
         return () => {
@@ -81,7 +79,7 @@ export default function Game(){
     useEffect(() => {
         if(isPianoReady){
             if (socket.id === hostId){ // emit the question to the server if the user is the host
-                console.log("emitted get question");
+                // console.log("emitted get question");
                 socket.emit("getQuestion", id);
             };
             return () => {
@@ -100,7 +98,7 @@ export default function Game(){
             // socket.emit("getTone", { roomId: id });
             socket.on("tone", (tone) => {
                 dispatch(setTone(tone));
-                console.log("received tone: "+ tone);
+                // console.log("received tone: "+ tone);
                 handlePlayNote(tone);
             });
             // socket.emit("getAnswers", { roomId: id });
@@ -119,8 +117,8 @@ export default function Game(){
     }, [dispatch]);
 
     async function handlePlayNote() {
-        console.log("isPianoReady: " + isPianoReady)
-        console.log("piano: " + JSON.stringify(piano))
+        // console.log("isPianoReady: " + isPianoReady)
+        // console.log("piano: " + JSON.stringify(piano))
         if (piano) {
             try { 
                 if (Array.isArray(tone)) {
@@ -131,10 +129,10 @@ export default function Game(){
                             // Introduce a delay between notes
                             await new Promise(resolve => setTimeout(resolve, 1000));
                         }
-                        console.log("Played notes: " + tone.join(', '));
+                        // console.log("Played notes: " + tone.join(', '));
                     } else {
                         await Promise.all(tone.map(note => piano.play(note)));
-                        console.log("Played notes: " + tone.join(', '));
+                        // console.log("Played notes: " + tone.join(', '));
                     }
                 } else {
                     console.error("Invalid tone format:", tone);
@@ -155,7 +153,7 @@ export default function Game(){
 
     useEffect(() => { // rendering twice
         socket.on("nextRound", () => {
-            console.log("roundCount: " + roundCount);
+            // console.log("roundCount: " + roundCount);
             if(roundCount < roundSettings.rounds){
                 if(socket.id === hostId){
                     socket.emit("getQuestion", id);
