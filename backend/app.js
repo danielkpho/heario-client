@@ -51,8 +51,8 @@ app.use(express.json());
 
 const io = socketio(expressServer, {
     cors: {
-        origin: ['http://localhost:3000', 'http://localhost:8000'],
-        // origin: ['https://heario-client-54bae534a8b4.herokuapp.com', 'https://danielkpho.github.io'],
+        // origin: ['http://localhost:3000', 'http://localhost:8000'],
+        origin: ['https://heario-client-54bae534a8b4.herokuapp.com', 'https://danielkpho.github.io'],
         methods: ['GET', 'POST'],
         credentials: true,
     },
@@ -67,9 +67,9 @@ const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:post
 
 const pool = new Pool({
     connectionString: connectionString,
-    // ssl: {
-    //     rejectUnauthorized: false, // Accept any SSL certificate (not recommended for production)
-    //   }
+    ssl: {
+        rejectUnauthorized: false, // Accept any SSL certificate (not recommended for production)
+      }
 });
 
 pool.connect()
