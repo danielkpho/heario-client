@@ -52,8 +52,7 @@ app.use(express.json());
 const io = socketio(expressServer, {
     cors: {
         origin: ['http://localhost:3000', 'http://localhost:8000'],
-    //     origin: ['https://heario-client-54bae534a8b4.herokuapp.com',
-    // 'https://danielkpho.github.io'],
+        // origin: ['https://heario-client-54bae534a8b4.herokuapp.com', 'https://danielkpho.github.io'],
         methods: ['GET', 'POST'],
         credentials: true,
     },
@@ -100,15 +99,6 @@ pool.connect()
         )
         `);
     
-        // Create 'user_tokens' table
-        await client.query(`
-        CREATE TABLE IF NOT EXISTS user_tokens (
-            user_id INT PRIMARY KEY,
-            token TEXT,
-            FOREIGN KEY (user_id) REFERENCES users(user_id)
-        )
-        `);
-    
         // Create 'user_attempts' table
         await client.query(`
         CREATE TABLE IF NOT EXISTS user_attempts (
@@ -145,45 +135,7 @@ process.on('SIGINT', () => {
       .finally(() => process.exit(0));
   });
 
-// app.post('/register', function(req, res) {
-//     const username = req.body.username;
-//     const password = req.body.password;
 
-//     // Check if the user already exists
-//     db.get("SELECT * FROM users WHERE username = ?", [username], (err, existingUser) => {
-//         if (err) {
-//             res.status(500).send({ err: err });
-//             console.log(err);
-//         } else if (existingUser) {
-//             res.status(200).send({ message: "User already exists!" });
-//             console.log("User already exists");
-//         } else {
-//             // If the user doesn't exist, insert the new user
-//             db.run("INSERT INTO users (username, password) VALUES (?, ?)", [username, password], (err, result) => {
-//                 if (err) {
-//                     res.status(500).send({ err: err });
-//                     console.log(err);
-//                 } else {
-//                     // User successfully added to the database
-//                     const token = generateToken(username, 3600);
-
-//                     res.status(200).send({ message: "User added to database", username, token });
-//                     console.log("User added to database");
-//                 }
-//             });
-//             // db.run("INSERT INTO games_played (user_id, total_games_played, games_won) VALUES ((SELECT user_id FROM users WHERE username = ?), 0, 0)", [username], (err, result) => {
-//             //     if (err) {
-//             //         res.status(500).send({ err: err });
-//             //         console.log(err);
-//             //     } else {
-//             //         // User successfully added to the database
-//             //         res.send({ message: "User games database init" });
-//             //         console.log("User games database init");
-//             //     }
-//             // });
-//         }
-//     });
-// });
 app.post('/register', async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
@@ -368,20 +320,28 @@ app.post('/getRank', verifyToken, async function(req, res) {
     const username = req.username;
 
     try {
+        // First, retrieve the user_id associated with the username
+        const userResult = await pool.query("SELECT user_id FROM users WHERE username = $1", [username]);
+        const userId = userResult.rows[0] ? userResult.rows[0].user_id : null;
+
+        if (!userId) {
+            // Handle the case where the user_id is not found
+            return res.status(404).send({ message: "User not found" });
+        }
+
         // Insert a new row with the user's rank or update the existing row if it already exists
         await pool.query(`
             INSERT INTO rank (user_id, rank)
             VALUES (
-                (SELECT user_id FROM users WHERE username = $1),
+                $1,
                 1200
             )
-            ON CONFLICT (user_id) DO UPDATE
-            SET rank = EXCLUDED.rank
-        `, [username]);
+            ON CONFLICT (user_id) DO NOTHING
+        `, [userId]);
 
         // Retrieve the user's rank
-        const result = await pool.query("SELECT rank FROM rank WHERE user_id = (SELECT user_id FROM users WHERE username = $1)", [username]);
-        const rank = result.rows[0] ? result.rows[0].rank :  1200;
+        const rankResult = await pool.query("SELECT rank FROM rank WHERE user_id = $1", [userId]);
+        const rank = rankResult.rows[0] ? rankResult.rows[0].rank :  1200;
 
         // Send the user's rank
         res.send({ rank });
@@ -390,6 +350,7 @@ app.post('/getRank', verifyToken, async function(req, res) {
         console.log(err);
     }
 });
+
 
 app.post('/updateRank', verifyToken, async function(req, res) {
     const username = req.username;
@@ -594,8 +555,7 @@ io.on('connection', socket => {
             const client = await pool.connect();
             try {
                 await client.query('BEGIN');
-    
-                // Execute the SQL UPDATE statements
+            
                 const updatePromises = Object.values(updatedPlayers).map(async (player) => {
                     try {
                         const user_id = await getUserIdFromUsername(player.name);
@@ -603,26 +563,25 @@ io.on('connection', socket => {
                             throw new Error(`No user found with username ${player.name}`);
                         }
                         const sql = 'UPDATE rank SET rank = $1 WHERE user_id = $2';
-                        await client.query(sql, [player.rank, user_id]);
+                        const result = await client.query(sql, [player.rank, user_id]);
+                        console.log(`Updated rank for user_id ${user_id}:`, result.rowCount);
                     } catch (err) {
                         console.error(`Error updating rank for player ${player.name}:`, err);
                         throw err; // Propagate the error to the Promise.all() handler
                     }
                 });
-    
-                // Wait for all updates to finish
+            
                 await Promise.all(updatePromises);
-    
-                // Commit the transaction if all updates were successful
+                
+            
                 await client.query('COMMIT');
                 console.log('Transaction committed successfully.');
             } catch (err) {
-                // Handle the error (transaction was already rolled back)
                 await client.query('ROLLBACK');
                 console.error('An error occurred during the transaction:', err);
             } finally {
                 client.release();
-            }
+            }            
         }
     });
     
