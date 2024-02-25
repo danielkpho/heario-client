@@ -4,6 +4,7 @@ import { socket } from "../api/socket";
 import { useDispatch, useSelector } from "react-redux";
 
 import { instrument as soundfontInstrument } from "soundfont-player";
+import SoundfontProvider from "./Piano/SoundfontProvider.js";
 
 import { resetState, setScores, incrementRound, incrementQuestion, resetGame, setIsRoundOver, setIsGameOver, selectTimer, setStatus } from "./gameSlice";
 import { newQuestion, resetStats } from "./statSlice.js"
@@ -193,7 +194,7 @@ export default function Game(){
 
     function handleLeave(){ // problem with rendering twice so it is here
         if (username === winner){ 
-            Axios.post("http://localhost:8000/incrementGamesWon", {}, {
+            Axios.post("https://heario-13b5b094cc85.herokuapp.com/incrementGamesWon", {}, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -203,7 +204,7 @@ export default function Game(){
                 console.log(error);
             });
         }
-        Axios.post("http://localhost:8000/getRank", {}, {
+        Axios.post("https://heario-13b5b094cc85.herokuapp.com/getRank", {}, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -220,7 +221,7 @@ export default function Game(){
     function restartGame() {    
         if (username === winner) {
             // Include the token in the Authorization header for the /incrementGamesWon request
-            Axios.post("http://localhost:8000/incrementGamesWon", {}, {
+            Axios.post("https://heario-13b5b094cc85.herokuapp.com/incrementGamesWon", {}, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -232,7 +233,7 @@ export default function Game(){
         }
     
         // Include the token in the Authorization header for the /getRank request
-        Axios.post("http://localhost:8000/getRank", {}, {
+        Axios.post("https://heario-13b5b094cc85.herokuapp.com/getRank", {}, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -267,10 +268,6 @@ export default function Game(){
                         )}
                         {isPianoReady && (
                         <div>
-                            <div>
-                            <button onClick={() => restartGame()}>End Game</button>
-                            <button onClick={() => nextRound()}>Next Round</button>
-                            </div>
                             <Grid container justifyContent="center" alignItems="center" spacing={2}>
                                 <Grid item>
                                     <Button 

@@ -55,7 +55,7 @@ export default function Lobby(){
             dispatch(setIsStarted(true));
             dispatch(setStatus("playing"))
             if(username){
-                Axios.post("http://localhost:8000/incrementGamesPlayed", {} , {
+                Axios.post("https://heario-13b5b094cc85.herokuapp.com/incrementGamesPlayed", {} , {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
