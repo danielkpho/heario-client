@@ -15,7 +15,7 @@ export default function Leaderboard(){
 
     // useEffect(() => {
     //     if (username === firstPlace.name) {
-    //         Axios.post("http://localhost:8000/incrementGamesWon", { 
+    //         Axios.post("https://heario-13b5b094cc85.herokuapp.com/incrementGamesWon", { 
     //             username: username,
     //         })
     //         .then((response) => {
