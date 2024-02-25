@@ -8,7 +8,6 @@ import { resetStats } from "../features/statSlice";
 
 import Game from "./Game";
 import Chat from "./Chat";
-import ReactPiano from "./Piano/Piano";
 
 import { Grid, Paper, Typography } from "@mui/material";
 import { Stack } from "@mui/material";
@@ -83,7 +82,7 @@ export default function Lobby(){
     useEffect(() => {
         socket.on("scores", (scores) => {
             dispatch(allPlayers);
-            console.log("scores");
+            // console.log("scores");
             });
         return () => {
             socket.off("scores");

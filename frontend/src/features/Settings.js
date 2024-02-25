@@ -71,7 +71,7 @@ export default function Settings(){
                 }
     
                 socket.emit("updateSettings", { id: roomId, roundSettings: updatedSettings });
-                console.log(roomId, updatedSettings);
+                // console.log(roomId, updatedSettings);
     
                 return updatedSettings;
             });

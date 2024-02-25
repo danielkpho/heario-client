@@ -86,7 +86,7 @@ export default function Home(){
     };
 
     function joinGame(){
-        console.log(isRoomJoinable(roomId));
+        // console.log(isRoomJoinable(roomId));
         if (isRoomJoinable(roomId) && username) {
                 socket.emit("joinRoom", { id: roomId, name, rank });
                 dispatch(setId(roomId));
