@@ -61,7 +61,7 @@ export default function Register(){
                 localStorage.setItem("username", response.data.username);
                 localStorage.setItem("rank", response.data.rank);
                 localStorage.setItem("token", response.data.token);
-                navigate("/")
+                navigate("/heario-client/")
             }
         }).catch((error) => {
             console.log(error);
