@@ -2,13 +2,18 @@ import React, { useState } from "react";
 
 import Axios from "axios";
 
-import { TextField, Button, Grid, Snackbar, Alert } from "@mui/material";
+import { TextField, Button, Grid, Snackbar, Alert, IconButton, InputAdornment, Input } from "@mui/material";
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useNavigate } from "react-router-dom";
+
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 export default function Register(){
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false); // New state for password visibility
 
     const [SnackbarOpen, setSnackbarOpen] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
@@ -68,6 +73,10 @@ export default function Register(){
         });
     }
 
+    const handleClickShowPassword = () => {
+        setShowPassword(!showPassword);
+    };
+
     return(
 
             <div>
@@ -79,21 +88,37 @@ export default function Register(){
                 padding= {2}
                 spacing={2}
                 >
-                    <Grid item>
+                    <Grid item xs={12}>
                         <TextField
                         id="outlined-basic"
                         label="Username"
                         variant="outlined"
+                        fullWidth
                         onChange={(e) => {setUsername(e.target.value)}}
+                        InputProps={{endAdornment: <InputAdornment position="end"><AccountCircleIcon/></InputAdornment>}}
                         />
                     </Grid>
                     <Grid item>
-                        <TextField
-                        id="outlined-basic"
-                        label="Password"
-                        variant="outlined"
-                        onChange={(e) => {setPassword(e.target.value)}}
-                        />
+                            <TextField
+                                id="outlined-basic"
+                                type={showPassword ? 'text' : 'password'}
+                                label="Password"
+                                variant="outlined"
+                                fullWidth // Ensures the TextField takes up the full width of its container
+                                onChange={(e) => { setPassword(e.target.value) }}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                aria-label="toggle password visibility"
+                                                onClick={handleClickShowPassword}
+                                            >
+                                                {showPassword ? <Visibility /> : <VisibilityOff />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />                    
                     </Grid>
                     <Grid item
                         container
