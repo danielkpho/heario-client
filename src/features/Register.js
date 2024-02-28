@@ -30,7 +30,7 @@ export default function Register(){
             setSnackbarOpen(true);
             return;
         }
-        Axios.post("http://localhost:8000/register", {
+        Axios.post("https://heario-13b5b094cc85.herokuapp.com/register", {
             username: username,
             password: password,
         }).then((response) => {
@@ -54,7 +54,7 @@ export default function Register(){
             setSnackbarOpen(true);
             return;
         }
-        Axios.post("http://localhost:8000/login", {
+        Axios.post("https://heario-13b5b094cc85.herokuapp.com/login", {
             username: username,
             password: password,
         }).then((response) => {

@@ -38,7 +38,7 @@ export default function Profile(){
       };
 
     useEffect(() => {
-        Axios.post("http://localhost:8000/getGamesPlayed", {}, {
+        Axios.post("https://heario-13b5b094cc85.herokuapp.com/getGamesPlayed", {}, {
         headers: {
             'Authorization': `Bearer ${token}`
         }
@@ -51,7 +51,7 @@ export default function Profile(){
     }, []);
 
     useEffect(() => {
-        Axios.post("http://localhost:8000/getAttempts", {}, {
+        Axios.post("https://heario-13b5b094cc85.herokuapp.com/getAttempts", {}, {
         headers: {
             'Authorization': `Bearer ${token}`
         }
@@ -64,7 +64,7 @@ export default function Profile(){
     }, []);
 
     useEffect(() => { // doesnt work on registration for not being asynchornous
-        Axios.post("http://localhost:8000/getRank", {}, {
+        Axios.post("https://heario-13b5b094cc85.herokuapp.com/getRank", {}, {
         headers: {
             'Authorization': `Bearer ${token}`
         }

@@ -194,7 +194,7 @@ export default function Game(){
 
     function handleLeave(){ // problem with rendering twice so it is here
         if (username === winner){ 
-            Axios.post("http://localhost:8000/incrementGamesWon", {}, {
+            Axios.post("https://heario-13b5b094cc85.herokuapp.com/incrementGamesWon", {}, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -204,7 +204,7 @@ export default function Game(){
                 console.log(error);
             });
         }
-        Axios.post("http://localhost:8000/getRank", {}, {
+        Axios.post("https://heario-13b5b094cc85.herokuapp.com/getRank", {}, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -221,7 +221,7 @@ export default function Game(){
     function restartGame() {    
         if (username === winner) {
             // Include the token in the Authorization header for the /incrementGamesWon request
-            Axios.post("http://localhost:8000/incrementGamesWon", {}, {
+            Axios.post("https://heario-13b5b094cc85.herokuapp.com/incrementGamesWon", {}, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -233,7 +233,7 @@ export default function Game(){
         }
     
         // Include the token in the Authorization header for the /getRank request
-        Axios.post("http://localhost:8000/getRank", {}, {
+        Axios.post("https://heario-13b5b094cc85.herokuapp.com/getRank", {}, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
