@@ -102,7 +102,7 @@ function TonesAnswerButton(){
 
     function updateAttempts(correct) {    
         // Include the token in the Authorization header
-        Axios.post("https://heario-13b5b094cc85.herokuapp.com/updateAttempts", {
+        Axios.post("http://localhost:8000/updateAttempts", {
             questionType: questionType,
             question: correctAnswer,
             correctAttempts: correct,

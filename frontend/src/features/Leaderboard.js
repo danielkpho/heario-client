@@ -13,19 +13,6 @@ export default function Leaderboard(){
     const username = localStorage.getItem("username");
     const dispatch = useDispatch();
 
-    // useEffect(() => {
-    //     if (username === firstPlace.name) {
-    //         Axios.post("https://heario-13b5b094cc85.herokuapp.com/incrementGamesWon", { 
-    //             username: username,
-    //         })
-    //         .then((response) => {
-    //             console.log(response);
-    //         })
-    //         .catch((error) => {
-    //             console.log(error);
-    //         });
-    //     }
-    // }, [firstPlace.name]);
     useEffect(() => {
         if (username === firstPlace.name) {
             dispatch(newWinner(username));
