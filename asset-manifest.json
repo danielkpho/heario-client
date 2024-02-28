@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/heario-client/static/css/main.744f15c6.css",
-    "main.js": "/heario-client/static/js/main.6fa842a7.js",
+    "main.js": "/heario-client/static/js/main.f054d5d2.js",
     "static/js/787.9e9f4ffd.chunk.js": "/heario-client/static/js/787.9e9f4ffd.chunk.js",
     "index.html": "/heario-client/index.html",
     "main.744f15c6.css.map": "/heario-client/static/css/main.744f15c6.css.map",
-    "main.6fa842a7.js.map": "/heario-client/static/js/main.6fa842a7.js.map",
+    "main.f054d5d2.js.map": "/heario-client/static/js/main.f054d5d2.js.map",
     "787.9e9f4ffd.chunk.js.map": "/heario-client/static/js/787.9e9f4ffd.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.744f15c6.css",
-    "static/js/main.6fa842a7.js"
+    "static/js/main.f054d5d2.js"
   ]
 }
